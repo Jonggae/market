@@ -25,9 +25,12 @@
 
 # 프로젝트 진행 방식
 
-- [ ] ERD 설계
-- [ ] 테이블 설계
-- [ ] 프로젝트 세팅
+- [x] ERD 설계
+
+![market_ERD](https://github.com/Jonggae/market/assets/130136857/4b924235-3adb-47a6-965e-28611665f085)
+
+- [x] 테이블 설계
+- [x] 프로젝트 세팅
 - [ ] 테스트 api
 - [ ] API 설계
 - [ ] Sequence 다이어그램
