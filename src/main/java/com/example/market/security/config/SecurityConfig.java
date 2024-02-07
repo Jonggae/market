@@ -49,8 +49,7 @@ public class SecurityConfig {
 //       /* 접근 가능한 엔드포인트 설정*/
         http.authorizeHttpRequests((authorizeHttpRequest -> authorizeHttpRequest
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .requestMatchers(new AntPathRequestMatcher(
-                        "/api/customer/register", "/api/customer/login")).permitAll()
+                .antMatchers("/api/customer/register", "/api/customer/login").permitAll()
                 .anyRequest().authenticated()));
 
         http.sessionManagement(sessionManagement ->
