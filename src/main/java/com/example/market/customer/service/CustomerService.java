@@ -4,9 +4,12 @@ import com.example.market.customer.dto.CustomerDto;
 import com.example.market.customer.entity.Authority;
 import com.example.market.customer.entity.Customer;
 import com.example.market.customer.repository.CustomerRepository;
+import com.example.market.security.exception.NotFoundMemberException;
+import com.example.market.security.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
@@ -33,6 +36,20 @@ public class CustomerService {
 
         return CustomerDto.from(customerRepository.save(customer));
     }
+
+    public CustomerDto getMyCustomerWithAuthorities() {
+        return CustomerDto.from(
+                SecurityUtil.getCurrentUsername()
+                        .flatMap(customerRepository::findOneWithAuthoritiesByCustomerName)
+                        .orElseThrow(() -> new NotFoundMemberException("회원을 찾을 수 없습니다"))
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerDto getCustomerWithAuthorities(String customerName) {
+        return CustomerDto.from(customerRepository.findOneWithAuthoritiesByCustomerName(customerName).orElse(null));
+    }
+
 
     private void checkUserInfo(String customerName, String email, String phoneNumber) {
         if (customerRepository.findByCustomerName(customerName).isPresent()) {
