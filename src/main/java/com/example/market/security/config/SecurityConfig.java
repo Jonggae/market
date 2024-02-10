@@ -15,9 +15,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -26,7 +23,6 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
-    private final CorsFilter corsFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
@@ -37,25 +33,24 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http.csrf(AbstractHttpConfigurer::disable); //csrf 비활성화는 나중에 신경써야할듯?
 
         // 예외처리 필터 등록
-        http.addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exceptionHandling -> exceptionHandling
+        http.exceptionHandling(exceptionHandling ->
+                exceptionHandling
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint));
-
-//       /* 접근 가능한 엔드포인트 설정*/
-        http.authorizeHttpRequests((authorizeHttpRequest -> authorizeHttpRequest
-                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .antMatchers("/api/customer/register", "/api/customer/login").permitAll()
-                .anyRequest().authenticated()));
 
         http.sessionManagement(sessionManagement ->
                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
+        http.authorizeHttpRequests((authorizeHttpRequest ->authorizeHttpRequest
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                        .antMatchers("/api/customer/register", "/api/customer/login").permitAll()
+                        .anyRequest().authenticated()));
+
         http.apply(new JwtSecurityConfig(tokenProvider)); // 다른 버전에 유의
+
 
         return http.build();
     }
