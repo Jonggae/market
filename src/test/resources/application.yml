@@ -24,7 +24,7 @@ spring:
 jwt:
   header: Authorization
   secret:
-    key: ${JWT_Secret_Key} # 테스트 환경에서도 사용할 비밀 키
+    key: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK # 테스트 환경에서도 사용할 비밀 키
   expiration_time: 86400
 logging:
   level:

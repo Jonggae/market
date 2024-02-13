@@ -18,8 +18,6 @@ public class TestDataInitializerConfig {
     @Bean
     public CommandLineRunner initData(CustomerRepository customerRepository, AuthorityRepository authorityRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            System.out.println("***********Initializing test data...");
-
             Authority authority = Authority.builder()
                     .authorityName("ROLE_USER").build();
             authorityRepository.save(authority);
@@ -33,7 +31,6 @@ public class TestDataInitializerConfig {
                     .build();
 
             customerRepository.save(customer);
-            System.out.println("*************Test data initialization complete.");
 
         };
     }
