@@ -6,6 +6,8 @@ import com.example.market.security.jwt.JwtAccessDeniedHandler;
 import com.example.market.security.jwt.JwtAuthenticationEntryPoint;
 import com.example.market.security.jwt.LoginProvider;
 import com.example.market.security.jwt.TokenProvider;
+import com.example.market.security.utils.BasicAuthenticationFilter;
+import com.example.market.security.utils.CustomUserDetailsService;
 import com.example.market.security.utils.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
@@ -31,6 +33,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
+    private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final AuthenticationConfiguration authenticationConfiguration;
@@ -53,6 +56,12 @@ public class SecurityConfig {
         JwtAuthenticationFilter filter = new JwtAuthenticationFilter(tokenProvider, loginProvider, successHandler, failureHandler);
         filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
         return filter;
+    }
+
+    @Bean
+    public BasicAuthenticationFilter basicAuthenticationFilter(AuthenticationManager authenticationManager) {
+        return new BasicAuthenticationFilter(authenticationManager, userDetailsService, passwordEncoder(), tokenProvider);
+
     }
 
     @Bean
@@ -80,7 +89,9 @@ public class SecurityConfig {
 
         http.authenticationProvider(loginProvider);
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        //필터 순서를 고려해야?
+        http.addFilterBefore(basicAuthenticationFilter(authenticationManager(authenticationConfiguration)), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); //JWT 로그인 과정
 
         http.apply(new JwtSecurityConfig(tokenProvider)); // 다른 버전에 유의
 
