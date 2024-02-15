@@ -25,7 +25,7 @@ public class CustomerController {
 
 
     // 로그인 한 개인이 접근 가능한 내 정보 페이지
-    @GetMapping("/customer-info")
+    @GetMapping("/my-info")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public CustomerDto getCustomerInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return customerService.getCustomerInfo();

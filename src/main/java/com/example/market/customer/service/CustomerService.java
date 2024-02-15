@@ -37,19 +37,14 @@ public class CustomerService {
         return CustomerDto.from(customerRepository.save(customer));
     }
 
-    public CustomerDto getMyCustomerWithAuthorities() {
+    //유저 정보 표시하기
+    public CustomerDto getCustomerInfo() {
         return CustomerDto.from(
                 SecurityUtil.getCurrentUsername()
                         .flatMap(customerRepository::findOneWithAuthoritiesByCustomerName)
                         .orElseThrow(() -> new NotFoundMemberException("회원을 찾을 수 없습니다"))
         );
     }
-
-    @Transactional(readOnly = true)
-    public CustomerDto getCustomerWithAuthorities(String customerName) {
-        return CustomerDto.from(customerRepository.findOneWithAuthoritiesByCustomerName(customerName).orElse(null));
-    }
-
 
     private void checkUserInfo(String customerName, String email, String phoneNumber) {
         if (customerRepository.findByCustomerName(customerName).isPresent()) {
