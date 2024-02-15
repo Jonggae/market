@@ -12,3 +12,12 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
+
+jwt:
+  header: Authorization
+  secret:
+    key: ${JWT_Secret_Key}
+  expiration_time: 86400
+logging:
+  level:
+    org.springframework.security: debug

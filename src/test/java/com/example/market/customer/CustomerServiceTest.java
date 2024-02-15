@@ -5,7 +5,7 @@ import com.example.market.customer.dto.CustomerDto;
 import com.example.market.customer.entity.Customer;
 import com.example.market.customer.repository.CustomerRepository;
 import com.example.market.customer.service.CustomerService;
-import com.example.market.security.configuration.SecurityConfig;
+import com.example.market.security.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
