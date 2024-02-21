@@ -58,7 +58,7 @@ public class JwtAuthenticationTest {
     }
 
     @Test
-    @DisplayName("로그인 후 접근할 수 있는 페이지 접근 - 200Ok")
+    @DisplayName("로그인 후 접근할 수 있는 페이지 접근 - 200 Ok")
     public void test1() throws Exception {
 
         String customerName = "testUser";

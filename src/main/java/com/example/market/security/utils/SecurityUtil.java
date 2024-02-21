@@ -8,20 +8,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Optional;
 
+// 아래 getCurrentUsername() 메서드를 이용하여 인증된 Authentication 객체 내부의 요소들을 가져옴 (eg. customerName 같은)
 public class SecurityUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityUtil.class);
 
     private SecurityUtil() {}
 
-    public static Optional<String> getCurrentUsername() {
+    public static Optional<String> getCurrentCustomerName() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         if (authentication == null) {
             logger.debug("Security context에 인증 정보가 없습니다.");
             return Optional.empty();
         }
 
         String username = null;
+
         if (authentication.getPrincipal() instanceof UserDetails) {
             UserDetails springSecurityUser = (UserDetails) authentication.getPrincipal();
             username = springSecurityUser.getUsername();
