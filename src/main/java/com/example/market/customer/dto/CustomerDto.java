@@ -31,6 +31,7 @@ public class CustomerDto {
         return CustomerDto.builder()
                 .customerName(customer.getCustomerName())
                 .phoneNumber(customer.getPhoneNumber())
+                .email(customer.getEmail())
                 .authorityDtoSet(customer.getAuthorities().stream()
                         .map(authority -> AuthorityDto.builder().authorityName(authority.getAuthorityName()).build())
                         .collect(Collectors.toSet()))

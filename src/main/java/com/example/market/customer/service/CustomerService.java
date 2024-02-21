@@ -3,13 +3,13 @@ package com.example.market.customer.service;
 import com.example.market.customer.dto.CustomerDto;
 import com.example.market.customer.entity.Authority;
 import com.example.market.customer.entity.Customer;
+import com.example.market.customer.repository.AuthorityRepository;
 import com.example.market.customer.repository.CustomerRepository;
 import com.example.market.security.exception.NotFoundMemberException;
 import com.example.market.security.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
@@ -18,6 +18,7 @@ import java.util.Collections;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
 
     public CustomerDto register(CustomerDto customerDto) {
@@ -25,6 +26,7 @@ public class CustomerService {
 
         Authority authority = Authority.builder()
                 .authorityName("ROLE_USER").build();
+        authorityRepository.save(authority);
 
         Customer customer = Customer.builder()
                 .customerName(customerDto.getCustomerName())
@@ -40,7 +42,7 @@ public class CustomerService {
     //유저 정보 표시하기
     public CustomerDto getCustomerInfo() {
         return CustomerDto.from(
-                SecurityUtil.getCurrentUsername()
+                SecurityUtil.getCurrentCustomerName()
                         .flatMap(customerRepository::findOneWithAuthoritiesByCustomerName)
                         .orElseThrow(() -> new NotFoundMemberException("회원을 찾을 수 없습니다"))
         );
