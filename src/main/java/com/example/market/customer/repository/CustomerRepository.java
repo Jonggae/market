@@ -8,8 +8,12 @@ import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Optional<Customer> findByCustomerName(String customerName);
+
     Optional<Customer> findByEmail(String email);
+
     Optional<Customer> findByPhoneNumber(String email);
+
+    boolean existsByCustomerName(String customerName);
 
     @EntityGraph(attributePaths = "authorities")
     Optional<Customer> findOneWithAuthoritiesByCustomerName(String customerName);

@@ -12,6 +12,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -25,14 +28,16 @@ public class JwtAuthenticationTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("로그인 시 jwt 발급 되는지 테스트")
+    @DisplayName("로그인 시 jwt 발급 되는지 테스트 + basic")
     public void whenLoginWithValidUser_thenReceiveJwtToken() throws Exception {
         String customerName = "testUser";
         String password = "password";
 
+        String base64Credentials = Base64.getEncoder().encodeToString((customerName+":"+password).getBytes(StandardCharsets.UTF_8));
+        String authorizationHeader = "Basic " +base64Credentials;
+
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.post("/api/customer/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"customerName\":\"" + customerName + "\", \"password\":\"" + password + "\"}"))
+                        .header("Authorization", authorizationHeader))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").exists())
                 .andReturn(); // MvcResult 객체를 반환
@@ -58,21 +63,23 @@ public class JwtAuthenticationTest {
     }
 
     @Test
-    @DisplayName("로그인 후 접근할 수 있는 페이지 접근 - 200Ok")
+    @DisplayName("로그인 후 접근할 수 있는 페이지 접근 - 200 Ok")
     public void test1() throws Exception {
 
         String customerName = "testUser";
         String password = "password";
 
-        MvcResult loginResult = mockMvc.perform(MockMvcRequestBuilders.post("/api/customer/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"customerName\":\"" + customerName + "\", \"password\":\"" + password + "\"}"))
+        String base64Credentials = Base64.getEncoder().encodeToString((customerName+":"+password).getBytes(StandardCharsets.UTF_8));
+        String authorizationHeader = "Basic " +base64Credentials;
+
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.post("/api/customer/login")
+                        .header("Authorization", authorizationHeader))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").exists())
-                .andReturn();
+                .andReturn(); // MvcResult 객체를 반환
 
         // 응답 본문에서 JWT 토큰 추출
-        String responseBody = loginResult.getResponse().getContentAsString();
+        String responseBody = mvcResult.getResponse().getContentAsString();
         String token = JsonPath.parse(responseBody).read("$.token");
 
         // 페이지 접근 요청에 JWT 토큰 포함하여 보내기

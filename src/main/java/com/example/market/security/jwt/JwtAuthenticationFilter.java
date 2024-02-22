@@ -1,11 +1,7 @@
-package com.example.market.security.utils;
+package com.example.market.security.jwt;
 
-import com.example.market.customer.dto.LoginRequestDto;
 import com.example.market.security.handler.LoginFailureHandler;
 import com.example.market.security.handler.LoginSuccessHandler;
-import com.example.market.security.jwt.LoginProvider;
-import com.example.market.security.jwt.TokenProvider;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,16 +10,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+// 인증과정 첫번째 UsernamePasswordAuthenticationFilter
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private final TokenProvider tokenProvider;
     private final LoginProvider loginProvider;
 
-    public JwtAuthenticationFilter(TokenProvider tokenProvider, LoginProvider loginProvider, LoginSuccessHandler successHandler, LoginFailureHandler failureHandler) {
+    public JwtAuthenticationFilter(LoginProvider loginProvider, LoginSuccessHandler successHandler, LoginFailureHandler failureHandler) {
         super();
-        this.tokenProvider = tokenProvider;
         this.loginProvider = loginProvider;
         // 성공 핸들러와 실패 핸들러 설정
         this.setAuthenticationSuccessHandler(successHandler);
@@ -36,18 +32,25 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override //로그인 시도
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
-        try {
-            LoginRequestDto loginRequestDto = new ObjectMapper().readValue(request.getInputStream(), LoginRequestDto.class);
+        String header = request.getHeader("Authorization");
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    loginRequestDto.getCustomerName(),
-                    loginRequestDto.getPassword());
-            return loginProvider.authenticate(authentication);
+        if (header != null && header.startsWith("Basic ")) {
 
+            String base64Credentials = header.substring("Basic ".length()).trim();
+            byte[] credDecoded = Base64.getDecoder().decode(base64Credentials);
+            String credentials = new String(credDecoded, StandardCharsets.UTF_8);
 
-        } catch (IOException e) {
-            throw new AuthenticationServiceException("로그인 실패", e);
+            final String[] values = credentials.split(":", 2);
+
+            if (values.length == 2) {
+                String customerName = values[0];
+                String password = values[1];
+                Authentication authenticationToken = new UsernamePasswordAuthenticationToken(customerName, password);
+                return loginProvider.authenticate(authenticationToken);
+            }
         }
+        throw new AuthenticationServiceException("로그인 실패");
+
     }
 }
 
