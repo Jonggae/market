@@ -20,6 +20,18 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository productRepository;
 
+    //상품 등록
+    public ProductDto addProduct(ProductDto productDto) {
+        Product product = Product.builder()
+                .productName(productDto.getProductName())
+                .productDescription(productDto.getProductDescription())
+                .price(productDto.getPrice())
+                .stock(productDto.getStock())
+                .build();
+
+        return ProductDto.from(productRepository.save(product));
+    }
+
     //상품들 전체 조회
     public List<ProductDto> showAllProducts() {
         List<Product> products = productRepository.findAll();
@@ -28,14 +40,33 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    // 상품 단일조회
     public ProductDto showProductInfo(Long productId) {
         Optional<Product> optionalProduct = productRepository.findById(productId);
         if (optionalProduct.isPresent()) {
             Product product = optionalProduct.get();
             return ProductDto.from(product);
         } else {
-            return null;
+            return null; // todo 예외 추가 하기
         }
+    }
 
+    // 상품 업데이트
+    public ProductDto updateProduct(Long productId, ProductDto productDto) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다" + productId));
+        product.setProductName(productDto.getProductName());
+        product.setProductDescription(productDto.getProductDescription());
+        product.setPrice(productDto.getPrice());
+        product.setStock(productDto.getStock());
+        productRepository.save(product);
+        return ProductDto.from(product);
+    }
+
+    // 상품 삭제
+    public void deleteProduct(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다"));
+        productRepository.delete(product);
     }
 }

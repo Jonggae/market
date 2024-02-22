@@ -1,17 +1,16 @@
 package com.example.market.product.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
+
 /*
-* orderable 과 주문 가능 여부도 추가 하는 것은 어떨까 */
+ * orderable 과 주문 가능 여부도 추가 하는 것은 어떨까 */
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 @Builder
 @Table(name = "products")
 public class Product {
@@ -31,7 +30,7 @@ public class Product {
     private String productDescription;
 
     //상품 가격
-    @Column(name = "product_price",nullable = false)
+    @Column(name = "product_price", nullable = false)
     private long price; //정수 가격만 사용하면 long 사용
 
     //상품 재고
