@@ -71,6 +71,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((authorizeHttpRequest -> authorizeHttpRequest
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 .antMatchers("/api/customer/register", "/api/customer/login").permitAll()
+                .antMatchers("/api/products/**").permitAll()
                 .anyRequest().authenticated()));
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); //JWT 인증을 위한 필터
