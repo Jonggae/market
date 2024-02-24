@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -47,12 +48,9 @@ public class ProductServiceTest {
         productId1 = savedProduct1.getId();
         productId2 = savedProduct1.getId();
     }
-    @AfterEach
-    void tearDown() {
-        productRepository.deleteAll();
-    }
 
     @Test
+    @Transactional
     @DisplayName("상품 등록 테스트")
     @WithMockUser(roles = "ADMIN")
     void addProductTest() throws Exception {
@@ -65,6 +63,7 @@ public class ProductServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("상품 전체 조회 서비스 테스트")
     void showAllProductTest() throws Exception {
         mockMvc.perform(get("/api/products")
@@ -75,6 +74,7 @@ public class ProductServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("상품 단일 조회 테스트")
     void ShowOneProductTest() throws Exception {
         // 상품 ID는 실제 환경에서 조회하여 설정
@@ -86,6 +86,7 @@ public class ProductServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("상품 정보 업데이트 테스트")
     @WithMockUser(roles = "ADMIN")
     void updateProductInfoTest() throws Exception {
