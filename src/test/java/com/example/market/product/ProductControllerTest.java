@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -58,7 +58,7 @@ public class ProductControllerTest {
     @Test
     @DisplayName("전체 상품목록 조회 테스트")
     void getAllProductsTest() throws Exception {
-        List<ProductDto> allProducts = Arrays.asList(productDto);
+        List<ProductDto> allProducts = Collections.singletonList(productDto);
         when(productService.showAllProducts()).thenReturn(allProducts);
 
         mockMvc.perform(get("/api/products"))
