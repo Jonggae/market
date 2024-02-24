@@ -31,9 +31,19 @@
 
 - [x] 테이블 설계
 - [x] 프로젝트 세팅
-- [ ] 테스트 api
-- [ ] API 설계
-- [ ] Sequence 다이어그램
-- [ ] 로그인 / 회원가입 api 개발
-- [ ] etc.
+- [x] 로그인 / 회원가입 api 개발
+- [ ] 상품, 장바구니, 주문 api 개발
+---
+# 회원 가입
+- https://jonggae.tistory.com/134
+- https://jonggae.tistory.com/135
+
+JWT를 이용한 로그인 인증 방식을 사용하였음.
+
+Spring Security 내부에서 일어나는 로그인 과정을 정리해본다.
+
+* basic header로 전송되는 암호화된 username, password (HTTPS는 미구현)
+* UsernamePasswordAuthenticationToken 
+
+
 
