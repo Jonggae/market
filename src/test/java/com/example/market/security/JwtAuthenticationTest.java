@@ -1,11 +1,13 @@
 package com.example.market.security;
 
+import com.example.market.config.TestDataInitializerConfig;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@Import(TestDataInitializerConfig.class)
 @DisplayName("JWT 관련 테스트")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -33,8 +36,8 @@ public class JwtAuthenticationTest {
         String customerName = "testUser";
         String password = "password";
 
-        String base64Credentials = Base64.getEncoder().encodeToString((customerName+":"+password).getBytes(StandardCharsets.UTF_8));
-        String authorizationHeader = "Basic " +base64Credentials;
+        String base64Credentials = Base64.getEncoder().encodeToString((customerName + ":" + password).getBytes(StandardCharsets.UTF_8));
+        String authorizationHeader = "Basic " + base64Credentials;
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.post("/api/customer/login")
                         .header("Authorization", authorizationHeader))
@@ -47,7 +50,6 @@ public class JwtAuthenticationTest {
         String token = JsonPath.parse(responseBody).read("$.token");
 
         System.out.println("Extracted JWT Token: " + token); // 콘솔에 토큰 출력
-
     }
 
     @Test
@@ -69,8 +71,8 @@ public class JwtAuthenticationTest {
         String customerName = "testUser";
         String password = "password";
 
-        String base64Credentials = Base64.getEncoder().encodeToString((customerName+":"+password).getBytes(StandardCharsets.UTF_8));
-        String authorizationHeader = "Basic " +base64Credentials;
+        String base64Credentials = Base64.getEncoder().encodeToString((customerName + ":" + password).getBytes(StandardCharsets.UTF_8));
+        String authorizationHeader = "Basic " + base64Credentials;
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.post("/api/customer/login")
                         .header("Authorization", authorizationHeader))

@@ -3,9 +3,11 @@ package com.example.market.customer;
 import com.example.market.customer.dto.AuthorityDto;
 import com.example.market.customer.dto.CustomerDto;
 import com.example.market.customer.entity.Customer;
+import com.example.market.customer.repository.AuthorityRepository;
 import com.example.market.customer.repository.CustomerRepository;
 import com.example.market.customer.service.CustomerService;
 import com.example.market.security.config.SecurityConfig;
+import com.example.market.security.exception.DuplicateMemberException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,8 @@ public class CustomerServiceTest {
     private CustomerRepository customerRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private AuthorityRepository authorityRepository;
 
     @InjectMocks
     private CustomerService customerService;
@@ -71,7 +75,7 @@ public class CustomerServiceTest {
                 .authorityDtoSet(Collections.singleton(authority))
                 .build();
 
-        assertThrows(IllegalArgumentException.class, () -> customerService.register(customerDto));
+        assertThrows(DuplicateMemberException.class, () -> customerService.register(customerDto));
     }
 
 
