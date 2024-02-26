@@ -11,11 +11,19 @@ public class ErrorDto {
 
     private final String message;
 
-    private List<FieldError> fieldErrors = new ArrayList<>();
+    private String details;
+
+    private final List<FieldError> fieldErrors = new ArrayList<>();
 
     public ErrorDto(int status, String message) {
         this.status= status;
         this.message=message;
+    }
+
+    public ErrorDto(int status, String message, String details) {
+        this.status = status;
+        this.message = message;
+        this.details = details;
     }
 
     public int getStatus() {
@@ -27,8 +35,16 @@ public class ErrorDto {
     }
 
     public void addFieldError(String objectName, String path, String message) {
-        FieldError eroor = new FieldError(objectName, path, message);
-        fieldErrors.add(eroor);
+        FieldError error = new FieldError(objectName, path, message);
+        fieldErrors.add(error);
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
+    public void setDetails(String details) {
+        this.details = details;
     }
     public List<FieldError> getFieldErrors() {
         return fieldErrors;
