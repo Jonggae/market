@@ -1,9 +1,9 @@
-package com.example.market.security.handler.login;
+package com.example.market.handler.login;
 
 
+import com.example.market.exception.DuplicateMemberException;
+import com.example.market.exception.NotFoundMemberException;
 import com.example.market.security.dto.ErrorDto;
-import com.example.market.security.exception.DuplicateMemberException;
-import com.example.market.security.exception.NotFoundMemberException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

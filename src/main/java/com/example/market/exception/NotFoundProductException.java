@@ -1,4 +1,4 @@
-package com.example.market.security.exception;
+package com.example.market.exception;
 
 public class NotFoundProductException extends RuntimeException{
 

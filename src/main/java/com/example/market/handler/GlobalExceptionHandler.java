@@ -1,6 +1,6 @@
-package com.example.market.security.handler;
+package com.example.market.handler;
 
-import com.example.market.security.exception.NotFoundProductException;
+import com.example.market.exception.NotFoundProductException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

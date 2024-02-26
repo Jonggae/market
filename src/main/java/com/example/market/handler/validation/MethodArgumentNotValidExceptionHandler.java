@@ -1,4 +1,4 @@
-package com.example.market.security.handler.validation;
+package com.example.market.handler.validation;
 
 import com.example.market.security.dto.ErrorDto;
 import org.springframework.core.Ordered;

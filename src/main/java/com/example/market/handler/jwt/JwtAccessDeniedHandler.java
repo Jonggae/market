@@ -1,4 +1,4 @@
-package com.example.market.security.handler.jwt;
+package com.example.market.handler.jwt;
 
 import com.example.market.security.dto.ErrorDto;
 import com.fasterxml.jackson.databind.ObjectMapper;

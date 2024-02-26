@@ -1,9 +1,9 @@
 package com.example.market.security.config;
 
-import com.example.market.security.handler.jwt.JwtAccessDeniedHandler;
-import com.example.market.security.handler.jwt.JwtAuthenticationEntryPoint;
-import com.example.market.security.handler.login.LoginFailureHandler;
-import com.example.market.security.handler.login.LoginSuccessHandler;
+import com.example.market.handler.jwt.JwtAccessDeniedHandler;
+import com.example.market.handler.jwt.JwtAuthenticationEntryPoint;
+import com.example.market.handler.login.LoginFailureHandler;
+import com.example.market.handler.login.LoginSuccessHandler;
 import com.example.market.security.jwt.JwtAuthenticationFilter;
 import com.example.market.security.jwt.LoginProvider;
 import com.example.market.security.jwt.TokenProvider;

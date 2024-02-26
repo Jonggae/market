@@ -7,7 +7,7 @@ import com.example.market.customer.repository.AuthorityRepository;
 import com.example.market.customer.repository.CustomerRepository;
 import com.example.market.customer.service.CustomerService;
 import com.example.market.security.config.SecurityConfig;
-import com.example.market.security.exception.DuplicateMemberException;
+import com.example.market.exception.DuplicateMemberException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

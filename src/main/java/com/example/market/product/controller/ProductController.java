@@ -3,7 +3,7 @@ package com.example.market.product.controller;
 import com.example.market.etc.apiResponse.ApiResponseDto;
 import com.example.market.product.dto.ProductDto;
 import com.example.market.product.service.ProductService;
-import com.example.market.security.exception.NotFoundProductException;
+import com.example.market.exception.NotFoundProductException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -3,7 +3,7 @@ package com.example.market.product.service;
 import com.example.market.product.dto.ProductDto;
 import com.example.market.product.entity.Product;
 import com.example.market.product.repository.ProductRepository;
-import com.example.market.security.exception.NotFoundProductException;
+import com.example.market.exception.NotFoundProductException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
