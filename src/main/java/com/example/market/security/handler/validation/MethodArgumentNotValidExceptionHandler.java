@@ -1,4 +1,4 @@
-package com.example.market.security.handler;
+package com.example.market.security.handler.validation;
 
 import com.example.market.security.dto.ErrorDto;
 import org.springframework.core.Ordered;
@@ -16,7 +16,8 @@ import java.util.List;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 // 유효성 검증
-// @Valid 를 사용하는 방법도 있지만 이것이 잡지 못하는 예외를 처리할 때 만들어 사용한다.
+// @Valid 를 사용하는 객체의 유효성 검증에 실패하였을 때 작동함
+
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
 public class MethodArgumentNotValidExceptionHandler {

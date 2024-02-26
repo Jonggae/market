@@ -1,4 +1,4 @@
-package com.example.market.security.handler;
+package com.example.market.security.handler.login;
 
 import com.example.market.security.jwt.TokenProvider;
 import org.springframework.security.core.Authentication;
@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+//로그인 시 id, password가 db에 저장된 값과 일치하여 로그인이 성공 하였을 때. Jwt 토큰이 생성됨.
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final TokenProvider tokenProvider;
