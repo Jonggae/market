@@ -1,4 +1,4 @@
-package com.example.market.etc.database;
+package com.example.market.commons.database;
 
 import com.example.market.customer.entity.Authority;
 import com.example.market.customer.entity.Customer;

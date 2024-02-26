@@ -1,4 +1,4 @@
-package com.example.market.etc.apiResponse;
+package com.example.market.commons.apiResponse;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
