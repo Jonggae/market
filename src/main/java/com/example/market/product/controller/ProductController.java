@@ -1,9 +1,10 @@
 package com.example.market.product.controller;
 
+import com.example.market.etc.apiResponse.ApiResponseDto;
 import com.example.market.product.dto.ProductDto;
 import com.example.market.product.service.ProductService;
+import com.example.market.exception.NotFoundProductException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +21,10 @@ public class ProductController {
     // 상품등록
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
-    public ResponseEntity<ProductDto> addProduct(@RequestBody ProductDto productDto) {
-        ProductDto createProduct = productService.addProduct(productDto);
-        return new ResponseEntity<>(createProduct, HttpStatus.CREATED);
+    public ResponseEntity<ApiResponseDto> addProduct(@RequestBody ProductDto productDto) {
+        productService.addProduct(productDto);
+        ApiResponseDto apiResponseDto = new ApiResponseDto(productDto.getProductName() + " 해당 상품 등록이 완료되었습니다.");
+        return ResponseEntity.ok(apiResponseDto);
     }
 
     // 전체 상품목록 조회
@@ -34,12 +36,12 @@ public class ProductController {
 
     // 상품 단일 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDto> getProduct(@PathVariable Long id) {
-        ProductDto product = productService.showProductInfo(id);
-        if (product != null) {
+    public ResponseEntity<?> getProduct(@PathVariable Long id) {
+        try {
+            ProductDto product = productService.showProductInfo(id);
             return ResponseEntity.ok(product);
-        } else {
-            return ResponseEntity.notFound().build();
+        } catch (NotFoundProductException e) {
+            return ResponseEntity.ok(new ApiResponseDto("상품이 존재하지 않습니다."));
         }
     }
 

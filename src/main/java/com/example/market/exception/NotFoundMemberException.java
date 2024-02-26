@@ -1,4 +1,4 @@
-package com.example.market.security.exception;
+package com.example.market.exception;
 
 /*
 * 예외처리

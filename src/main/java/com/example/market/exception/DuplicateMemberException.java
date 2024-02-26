@@ -1,4 +1,4 @@
-package com.example.market.security.exception;
+package com.example.market.exception;
 /*
 * 이미 존재하는 ~~  예외처리
 */
