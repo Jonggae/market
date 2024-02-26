@@ -3,11 +3,11 @@ package com.example.market.product.service;
 import com.example.market.product.dto.ProductDto;
 import com.example.market.product.entity.Product;
 import com.example.market.product.repository.ProductRepository;
+import com.example.market.security.exception.NotFoundProductException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /*
@@ -42,13 +42,10 @@ public class ProductService {
 
     // 상품 단일조회
     public ProductDto showProductInfo(Long productId) {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
-        if (optionalProduct.isPresent()) {
-            Product product = optionalProduct.get();
-            return ProductDto.from(product);
-        } else {
-            return null; // todo 예외 추가 하기
-        }
+        return productRepository.findById(productId)
+                .map(ProductDto::from)
+                .orElseThrow(NotFoundProductException::new);
+
     }
 
     // 상품 업데이트
