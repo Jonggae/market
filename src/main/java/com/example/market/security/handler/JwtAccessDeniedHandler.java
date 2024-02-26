@@ -1,4 +1,4 @@
-package com.example.market.security.jwt;
+package com.example.market.security.handler;
 
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
