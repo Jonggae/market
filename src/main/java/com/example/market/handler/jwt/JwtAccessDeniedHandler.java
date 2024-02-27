@@ -15,7 +15,7 @@ import java.io.IOException;
 @Component
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     // JWT 인증 값에 [권한]이 없는 접근을 할 때 403
-    // eg) admin 권한을 customer 가 접근 하였을 때
+    // eg) admin 권한을 customer 가 접근 하였을 때 Security 레벨
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,

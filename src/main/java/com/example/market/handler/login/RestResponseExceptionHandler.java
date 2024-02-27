@@ -26,7 +26,7 @@ public class RestResponseExceptionHandler extends ResponseEntityExceptionHandler
         return new ErrorDto(CONFLICT.value(), ex.getMessage());
     }
 
-
+    // 권한이 없는 계정으로 접근하였을 때 mvc 레벨
     @ResponseStatus(FORBIDDEN)
     @ExceptionHandler(value = {NotFoundMemberException.class, AccessDeniedException.class})
     @ResponseBody
