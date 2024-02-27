@@ -10,10 +10,4 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 존재하지 않는 상품 조회 시
-    @ExceptionHandler(NotFoundProductException.class)
-    public ResponseEntity<?> productNotFoundException(NotFoundProductException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ex.getMessage());
-    }
 }
