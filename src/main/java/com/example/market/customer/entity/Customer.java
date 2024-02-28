@@ -1,11 +1,13 @@
 package com.example.market.customer.entity;
 
+import com.example.market.cart.entity.Cart;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -36,8 +38,10 @@ public class Customer {
     @ManyToMany
     @JoinTable(name = "customer_authority", joinColumns = {@JoinColumn(name = "customer_id", referencedColumnName = "customer_id")},
     inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
-    private Set<Authority> authorities;
+    private Set<Authority> authorities = new HashSet<>(); // nullPointerException 방지위해 초기화 함
 
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+    private Cart cart;
 }
 
 //    todo: order, cart 와 연결관게 설정하기

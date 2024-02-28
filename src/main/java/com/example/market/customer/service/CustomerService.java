@@ -1,5 +1,7 @@
 package com.example.market.customer.service;
 
+import com.example.market.cart.entity.Cart;
+import com.example.market.cart.repository.CartRepository;
 import com.example.market.customer.dto.CustomerDto;
 import com.example.market.customer.entity.Authority;
 import com.example.market.customer.entity.Customer;
@@ -21,6 +23,7 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CartRepository cartRepository;
 
     public CustomerDto register(CustomerDto customerDto) {
         checkUserInfo(customerDto.getCustomerName(), customerDto.getEmail(), customerDto.getPhoneNumber());
@@ -37,7 +40,13 @@ public class CustomerService {
                 .authorities(Collections.singleton(authority)) // 특정한 요소를 가진 불변한 컬렉션
                 .build();
 
-        return CustomerDto.from(customerRepository.save(customer));
+        customer = customerRepository.save(customer);
+
+        Cart cart = new Cart();
+        cart.setCustomer(customer);
+        cartRepository.save(cart);
+
+        return CustomerDto.from(customer);
     }
 
     //유저 정보 표시하기
