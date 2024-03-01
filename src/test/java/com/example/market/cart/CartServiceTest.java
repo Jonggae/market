@@ -10,7 +10,6 @@ import com.example.market.dataConfig.CartServiceTestDataConfig;
 import com.example.market.product.entity.Product;
 import com.example.market.product.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,41 +101,16 @@ public class CartServiceTest {
     }
 
     @Test
-    @Disabled
-    @DisplayName("장바구니 항목 삭제 테스트")
-    void deleteCartItemTest() {
-        // 먼저 항목을 추가
-        CartItemDto addedCartItem = cartService.addCartItem(testCustomerId, addNewCartItem1());
-        Long itemIdToDelete = addedCartItem.getItemId(); // 실제 저장된 항목의 ID
-
-        System.out.println("///////" + addedCartItem);
-        System.out.println("///////" + itemIdToDelete);
-        // 삭제할 상품의 id
-        cartService.deleteCartItem(testCustomerId, itemIdToDelete);
-
-        CartDto cartDto = cartService.getCartItems(testCustomerId);
-        assertThat(cartDto.getCartItems()).isEmpty();
-    }
-
-    @Test
     @DisplayName("삭제 테스트 2")
     void del() {
         transactionTemplate.execute(status -> {
-            CartItemDto addWillDeleteItem = cartService.addCartItem(testCustomerId, addNewCartItem1());
-            CartItemDto addRemainingItem = cartService.addCartItem(testCustomerId, addNewCartItem2());
+            CartItemDto willDeleteItem = cartService.addCartItem(testCustomerId, addNewCartItem1());
+            CartItemDto remainingItem = cartService.addCartItem(testCustomerId, addNewCartItem2());
 
-            Long itemIdToDelete = addWillDeleteItem.getItemId(); // 삭제될 항목의 ID
+            Long willDeleteItemId = willDeleteItem.getItemId(); // 삭제될 항목의 ID
 
-            Cart cartBeforeDeletion = entityManager.createQuery("select c from Cart c join fetch c.items where c.customer.id = :customerId", Cart.class)
-                    .setParameter("customerId", testCustomerId) //쿼리가 item 을 찾고 있었음
-                    .getSingleResult();
-            System.out.println("Before deletion: " + cartBeforeDeletion.getItems());
+            cartService.deleteCartItem(testCustomerId, willDeleteItemId); // 1번 상품을 삭제할 예정
 
-            System.out.println("이 상품은 삭제될 것이다 " + addWillDeleteItem);
-            System.out.println("이 상품은 남아있을 것이다 " + addRemainingItem);
-
-
-            cartService.deleteCartItem(testCustomerId, itemIdToDelete); // 1번 상품을 삭제할 예정
 
             entityManager.flush();
             entityManager.clear();
@@ -144,32 +118,17 @@ public class CartServiceTest {
             Cart cartAfterDeletion = entityManager.createQuery("select c from Cart c join fetch c.items where c.customer.id = :customerId", Cart.class)
                     .setParameter("customerId", testCustomerId)
                     .getSingleResult();
-            System.out.println("After deletion: " + cartAfterDeletion.getItems());
-            System.out.println("이 상품은 남아있을 것이다 " + addRemainingItem);
 
-            List<CartItemDto> remainingItem = cartAfterDeletion.getItems().stream()
+            List<CartItemDto> remainingItemDto = cartAfterDeletion.getItems().stream()
                     .map(CartItemDto::from)
                     .collect(Collectors.toList());
 
-            assertEquals(1, remainingItem.size());
-            assertEquals(addRemainingItem, remainingItem.get(0));
+            assertEquals(1, remainingItemDto.size());
+            assertEquals(remainingItem, remainingItemDto.get(0));
 
             return null;
         });
     }
-
-//    @Test
-//    @DisplayName("장바구니 전체 비우기 테스트")
-//    void clearCartTest() {
-//        // 먼저 항목을 여러 개 추가
-//        cartService.addCartItem(testCustomerId, new CartItemDto(testProductId, 1));
-//        cartService.addCartItem(testCustomerId, new CartItemDto(testProductId, 2));
-//
-//        cartService.clearCart(testCustomerId);
-//
-//        CartDto cartDto = cartService.getCartItems(testCustomerId);
-//        assertThat(cartDto.getCartItems()).isEmpty();
-//    }
 
     private CartItemDto addNewCartItem1() {
         return CartItemDto.builder()
