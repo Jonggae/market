@@ -39,4 +39,13 @@ public class CartItem {
     public double getTotalPrice() {
         return product.getPrice() * quantity;
     }
+    @Override
+    public String toString() {
+        return "CartItem{" +
+                "id=" + id +
+                ", productName=" + product.getProductName() +
+                ", quantity=" + quantity +
+                ", price=" + product.getPrice() +
+                '}';
+    }
 }

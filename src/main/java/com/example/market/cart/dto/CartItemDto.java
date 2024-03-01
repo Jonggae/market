@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -27,6 +29,7 @@ public class CartItemDto {
                 .price(cartItem.getTotalPrice())
                 .build();
     }
+
     @Override
     public String toString() {
         return "CartItemDto{" +
@@ -35,5 +38,18 @@ public class CartItemDto {
                 ", quantity=" + quantity +
                 ", price=" + price +
                 '}';
+    }
 
-}}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CartItemDto that = (CartItemDto) o;
+        return Objects.equals(itemId, that.itemId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(itemId);
+    }
+}
