@@ -14,6 +14,7 @@ public class CartItemDto {
 
     private Long itemId;
     private Long productId;
+    private String productName;
     private Integer quantity;
     private Double price;
 
@@ -21,9 +22,18 @@ public class CartItemDto {
         return CartItemDto.builder()
                 .itemId(cartItem.getId())
                 .productId(cartItem.getProduct().getId())
+                .productName(cartItem.getProduct().getProductName())
                 .quantity(cartItem.getQuantity())
                 .price(cartItem.getTotalPrice())
                 .build();
     }
+    @Override
+    public String toString() {
+        return "CartItemDto{" +
+                "itemId=" + itemId +
+                ", productName='" + productName + '\'' +
+                ", quantity=" + quantity +
+                ", price=" + price +
+                '}';
 
-}
+}}
