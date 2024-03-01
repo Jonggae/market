@@ -32,12 +32,8 @@ public class Cart {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "cart")
     private List<CartItem> items = new ArrayList<>();
-
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
-    }
 
     public Cart(Long customerId) {
     }

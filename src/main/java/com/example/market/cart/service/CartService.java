@@ -10,6 +10,7 @@ import com.example.market.product.entity.Product;
 import com.example.market.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,9 +27,11 @@ public class CartService {
     public CartDto getCartItems(Long customerId) {
         Cart cart = cartRepository.findByCustomerId(customerId)
                 .orElseThrow(() -> new RuntimeException("장바구니가 없습니다"));
+
         List<CartItemDto> cartItems = cart.getItems().stream()
                 .map(CartItemDto::from)
                 .collect(Collectors.toList());
+
         return new CartDto(customerId, cartItems);
     }
 
@@ -61,11 +64,16 @@ public class CartService {
     }
 
     // 장바구니 항목 삭제
-    public void deleteCartItem(Long customerId, Long itemId, Long cartId) {
+    public CartDto deleteCartItem(Long customerId, Long itemId) {
+        CartItem cartItem = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("장바구니 내의 해당 상품을 찾을 수 없습니다."));
+        cartItemRepository.deleteById(cartItem.getId());
 
+        return getCartItems(customerId);
     }
 
     // 장바구니 전체 비우기
+    @Transactional //Transactional 필요
     public void clearCart(Long customerId) {
         Cart cart = cartRepository.findByCustomerId(customerId)
                 .orElseThrow(() -> new RuntimeException("장바구니가 없습니다"));

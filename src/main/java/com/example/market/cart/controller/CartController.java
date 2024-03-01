@@ -35,18 +35,19 @@ public class CartController {
     public ResponseEntity<CartDto> updateCartItem(@PathVariable Long customerId, @PathVariable Long itemId, @RequestBody CartItemDto cartItemDto) {
         CartDto updatedCart = cartService.updateCartItem(customerId, itemId, cartItemDto);
         return ResponseEntity.ok(updatedCart);
+        // 수량변경은 따로 안내메시지를 보내지 않고 업데이트된 장바구니를 그대로 보여줌
     }
 
     // 장바구니 항목 삭제
-//    @DeleteMapping("/items/{itemId}")
-//    public ResponseEntity<ApiResponseDto> deleteCartItem(@PathVariable Long itemId) {
-//        cartService.deleteCartItem(itemId);
-//        ApiResponseDto apiResponseDto = new ApiResponseDto("삭제되었습니다.");
-//        return ResponseEntity.ok(apiResponseDto);
-//    }
+    @DeleteMapping("/{customerId}/items/{itemId}")
+    public ResponseEntity<ApiResponseDto> deleteCartItem(@PathVariable Long customerId, @PathVariable Long itemId) {
+        cartService.deleteCartItem(customerId, itemId);
+        ApiResponseDto apiResponseDto = new ApiResponseDto("삭제되었습니다.");
+        return ResponseEntity.ok(apiResponseDto);
+    }
 
     //장바구니 전체 비우기
-    @DeleteMapping("{customerId}")
+    @DeleteMapping("/{customerId}")
     public ResponseEntity<ApiResponseDto> clearCart(@PathVariable Long customerId) {
         cartService.clearCart(customerId);
         ApiResponseDto apiResponseDto = new ApiResponseDto("장바구니를 비웠습니다.");
