@@ -42,8 +42,10 @@ public class CustomerService {
 
         customer = customerRepository.save(customer);
 
-        Cart cart = new Cart();
-        cart.setCustomer(customer);
+
+        Cart cart = Cart.builder()
+                .customer(customer)
+                .build();
         cartRepository.save(cart);
 
         return CustomerDto.from(customer);

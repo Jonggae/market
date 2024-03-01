@@ -36,6 +36,7 @@ public class CustomerDto {
                 .authorityDtoSet(customer.getAuthorities().stream()
                         .map(authority -> AuthorityDto.builder().authorityName(authority.getAuthorityName()).build())
                         .collect(Collectors.toSet()))
+
                 .build();
     }
 }
