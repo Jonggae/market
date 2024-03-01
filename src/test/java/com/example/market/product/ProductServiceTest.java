@@ -4,7 +4,6 @@ import com.example.market.product.dto.ProductDto;
 import com.example.market.product.repository.ProductRepository;
 import com.example.market.product.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,7 +59,9 @@ public class ProductServiceTest {
                         .content(objectMapper.writeValueAsString(newProduct)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(newProduct.getProductName() + " 해당 상품 등록이 완료되었습니다."));
-    } @Test
+    }
+
+    @Test
     @Transactional
     @DisplayName("일반 사용자(USER) 상품 등록 테스트")
     @WithMockUser(roles = "USER")
@@ -98,11 +99,11 @@ public class ProductServiceTest {
     @Test
     @DisplayName("상품 단일 조회 실패 테스트")
     @Transactional
-    void failShowOneProductTEst() throws Exception{
+    void failShowOneProductTEst() throws Exception {
         long nonExistProductId = 333;
 
         mockMvc.perform(get("/api/products/" + nonExistProductId)
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("상품이 존재하지 않습니다."));
     }
@@ -113,10 +114,10 @@ public class ProductServiceTest {
     @WithMockUser(roles = "ADMIN")
     void updateProductInfoTest() throws Exception {
 
-        ProductDto updateProduct = new ProductDto(productId1, "업데이트된 상품", "업데이트된 상품 정보",1500L, 15L);
-        mockMvc.perform(put("/api/products/"+productId1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(updateProduct)))
+        ProductDto updateProduct = new ProductDto(productId1, "업데이트된 상품", "업데이트된 상품 정보", 1500L, 15L);
+        mockMvc.perform(put("/api/products/" + productId1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(updateProduct)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.productName").value("업데이트된 상품"))
                 .andExpect(jsonPath("$.productDescription").value("업데이트된 상품 정보"))

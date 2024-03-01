@@ -1,6 +1,6 @@
 package com.example.market.security;
 
-import com.example.market.config.TestDataInitializerConfig;
+import com.example.market.dataConfig.TestDataInitializerConfig;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

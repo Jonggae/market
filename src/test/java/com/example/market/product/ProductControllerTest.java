@@ -51,9 +51,8 @@ public class ProductControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productDto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.productName").value("테스트 상품"));
-    }
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(productDto.getProductName()+ " 해당 상품 등록이 완료되었습니다."));    }
 
     @Test
     @DisplayName("전체 상품목록 조회 테스트")
