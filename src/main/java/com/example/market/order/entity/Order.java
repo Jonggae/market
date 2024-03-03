@@ -1,6 +1,7 @@
 package com.example.market.order.entity;
 
 import com.example.market.customer.entity.Customer;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

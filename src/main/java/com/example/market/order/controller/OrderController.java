@@ -2,11 +2,11 @@ package com.example.market.order.controller;
 
 import com.example.market.order.dto.OrderDto;
 import com.example.market.order.dto.OrderItemDto;
-import com.example.market.order.entity.Order;
 import com.example.market.order.entity.Order.OrderStatus;
 import com.example.market.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,18 +34,19 @@ public class OrderController {
     }
 
     // 주문 확정
-    @PostMapping("/{customerId}/confirm")
-    public ResponseEntity<Order> confirmOrder(@PathVariable Long customerId){
-        Order confirmOrder = orderService.confirmOrder(customerId);
+    @PostMapping("/{customerId}/{orderId}/confirm") // 해당 유저의 주문번호를 지정하여 확정
+    public ResponseEntity<OrderDto> confirmOrder(@PathVariable Long customerId, @PathVariable Long orderId) {
+        OrderDto confirmOrder = orderService.confirmOrder(customerId, orderId);
         return ResponseEntity.ok(confirmOrder);
     }
 
     // 주문 상태 업데이트
     @PatchMapping("/{orderId}/status")
-    public ResponseEntity<Void> updateOrderStatus(@PathVariable Long orderId,
-                                                  @RequestParam OrderStatus newStatus) {
-        orderService.updateOrderStatus(orderId, newStatus);
-        return ResponseEntity.ok().build();
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<OrderDto> updateOrderStatus(@PathVariable Long orderId,
+                                                      @RequestParam OrderStatus newStatus) {
+        OrderDto updatedOrder = orderService.updateOrderStatus(orderId, newStatus);
+        return ResponseEntity.ok(updatedOrder);
     }
 
     // 주문 항목 수량 변경
@@ -56,16 +57,17 @@ public class OrderController {
     }
 
     // 주문 항목 삭제
-    @DeleteMapping("/items/{orderItemId}")
-    public ResponseEntity<Void> deleteOrderItem(@PathVariable Long orderItemId) {
-        orderService.deleteOrderItem(orderItemId);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/{customerId}/items/{orderItemId}")
+    public ResponseEntity<List<OrderDto>> deleteOrderItem(@PathVariable Long orderItemId, @PathVariable Long customerId) {
+        List<OrderDto> orderDto = orderService.deleteOrderItem(customerId, orderItemId);
+        return ResponseEntity.ok(orderDto);
     }
 
     // 주문 삭제
-    @DeleteMapping("/{orderId}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long orderId) {
-        orderService.deleteOrder(orderId);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/{customerId}/{orderId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<OrderDto>> deleteOrder(@PathVariable Long orderId, @PathVariable Long customerId) {
+        List<OrderDto> orderDto = orderService.deleteOrder(orderId, customerId);
+        return ResponseEntity.ok(orderDto);
     }
 }

@@ -53,6 +53,7 @@ public class OrderService {
                     .collect(Collectors.toList());
 
             return OrderDto.builder()
+                    .orderId(order.getId())
                     .customerId(customerId)
                     .orderItems(orderItems)
                     .status(order.getOrderStatus()) // 실제 주문의 상태를 반영
@@ -61,7 +62,7 @@ public class OrderService {
         }).collect(Collectors.toList());
     }
 
-    // 미확정 주문에 상품 주문하기 (아직 주문하기를 누르기 전임)
+    // 미확정 주문에 상품 추가하기 (아직 주문하기를 누르기 전임)
     public OrderItemDto addOrderItem(Long customerId, OrderItemDto orderItemDto) {
         // 고객 정보 조회
         customerRepository.findById(customerId)
@@ -80,37 +81,35 @@ public class OrderService {
                 .quantity(orderItemDto.getQuantity())
                 .build();
 
-        order.addOrderItem(newOrderItem);
-        order.setOrderStatus(OrderStatus.PENDING_ORDER);
-
-        orderItemRepository.save(newOrderItem);
+        order.getOrderItems().add(newOrderItem);
         orderRepository.save(order);
 
         return OrderItemDto.from(newOrderItem);
     }
 
     // 주문을 확정함
-    public Order confirmOrder(Long customerId) {
-        Order extstingOrder = orderRepository.findByCustomerIdAndOrderStatus(customerId, OrderStatus.PENDING_ORDER)
+    public OrderDto confirmOrder(Long customerId, Long orderId) {
+        Order extstingOrder = orderRepository.findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(() -> new RuntimeException("미확정 주문이 없습니다."));
 
         extstingOrder.setOrderStatus(OrderStatus.PENDING_PAYMENT); // 주문 확정이므로 상태 변경함
         extstingOrder.setOrderDate(LocalDateTime.now());
 
-        return orderRepository.save(extstingOrder);
+        return OrderDto.from(orderRepository.save(extstingOrder));
     }
 
     // 결제, 배송 등 이후 주문 상태 업데이트
-    public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public OrderDto updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
         order.setOrderStatus(newStatus);
-        orderRepository.save(order);
+        return OrderDto.from(orderRepository.save(order));
     }
+
     // 미확정 주문 내 상품 수량 변경하기
     public List<OrderDto> updateOrderItemQuantity(Long customerId, Long orderItemId, OrderItemDto orderItemDto) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
-                .orElseThrow(()-> new IllegalArgumentException("해당 상품이 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품이 없습니다."));
         orderItem.setQuantity(orderItemDto.getQuantity());
         orderItemRepository.save(orderItem);
         return getOrderList(customerId);
@@ -118,20 +117,21 @@ public class OrderService {
     }
 
     //미확정 주문 내 상품 삭제하기
-    public void deleteOrderItem(Long orderItemId) {
+    public List<OrderDto> deleteOrderItem(Long customerId, Long orderItemId) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
                 .orElseThrow(() -> new RuntimeException("주문 항목을 찾을 수 없습니다."));
 
         orderItemRepository.delete(orderItem);
+        return getOrderList(customerId);
     }
 
     // 주문 삭제하기
-    public void deleteOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public List<OrderDto> deleteOrder(Long orderId, Long customerId) {
+        Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
         orderItemRepository.deleteAllByOrder(order);
 
         orderRepository.delete(order);
+        return getOrderList(customerId);
     }
-
 }
