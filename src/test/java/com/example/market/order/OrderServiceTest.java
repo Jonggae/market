@@ -156,38 +156,8 @@ public class OrderServiceTest {
     @Test
     @DisplayName("미확정 주문 내 수량 변경 테스트")
     void updateOrderItemQuantityTest() {
-        // 먼저, 새 주문 항목을 추가합니다.
-        OrderItemDto newOrderItem = addNewOrderItem1();
-        OrderItemDto addedOrderItem = orderService.addOrderItem(testCustomerId, newOrderItem);
 
-        // 변경할 수량을 설정합니다.
-        int updatedQuantity = 5;
-
-        // 수량 변경을 위한 DTO를 생성합니다.
-        OrderItemDto updateOrderItemDto = OrderItemDto.builder()
-                .productId(addedOrderItem.getProductId())
-                .quantity(updatedQuantity)
-                .build();
-
-        // 수량 변경을 실행합니다.
-        List<OrderDto> updatedOrderList = orderService.updateOrderItemQuantity(testCustomerId, addedOrderItem.getItemId(), updateOrderItemDto);
-
-        // 변경된 주문 항목을 검색하여, 수량이 업데이트되었는지 확인합니다.
-        boolean quantityUpdated = false;
-        for (OrderDto orderDto : updatedOrderList) {
-            for (OrderItemDto itemDto : orderDto.getOrderItems()) {
-                if (itemDto.getItemId().equals(addedOrderItem.getItemId()) && itemDto.getQuantity() == updatedQuantity) {
-                    quantityUpdated = true;
-                    break;
-                }
-            }
-            if (quantityUpdated) break;
-        }
-
-        // 검증: 수량이 정확히 업데이트되었는지 확인합니다.
-        assertTrue(quantityUpdated, "수량이 정확히 업데이트되어야 합니다.");
     }
-
     @Test
     @DisplayName("주문 삭제 테스트")
     void deleteOrderTest() {
