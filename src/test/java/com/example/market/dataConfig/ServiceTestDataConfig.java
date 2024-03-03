@@ -6,6 +6,9 @@ import com.example.market.customer.entity.Authority;
 import com.example.market.customer.entity.Customer;
 import com.example.market.customer.repository.AuthorityRepository;
 import com.example.market.customer.repository.CustomerRepository;
+import com.example.market.order.entity.Order;
+import com.example.market.order.repository.OrderItemRepository;
+import com.example.market.order.repository.OrderRepository;
 import com.example.market.product.entity.Product;
 import com.example.market.product.repository.ProductRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -14,14 +17,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 @TestConfiguration
-@Profile("cart")
-public class CartServiceTestDataConfig {
+@Profile("service")
+public class ServiceTestDataConfig {
     @Bean
     public CommandLineRunner initData(CustomerRepository customerRepository, AuthorityRepository authorityRepository,
-                                      ProductRepository productRepository, CartRepository cartRepository, PasswordEncoder passwordEncoder) {
+                                      ProductRepository productRepository, CartRepository cartRepository,
+                                      OrderRepository orderRepository, OrderItemRepository orderItemRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             Authority authority = Authority.builder()
                     .authorityName("ROLE_USER").build();
@@ -59,7 +64,12 @@ public class CartServiceTestDataConfig {
                     .build();
             productRepository.save(product2);
 
-
+            Order testOrder = Order.builder()
+                    .customer(savedCustomer)
+                    .orderDate(LocalDateTime.now())
+                    .orderStatus(Order.OrderStatus.PENDING_ORDER)
+                    .build();
+            orderRepository.save(testOrder);
 
         };
     }

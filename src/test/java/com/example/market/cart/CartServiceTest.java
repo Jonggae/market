@@ -6,7 +6,7 @@ import com.example.market.cart.entity.Cart;
 import com.example.market.cart.service.CartService;
 import com.example.market.customer.entity.Customer;
 import com.example.market.customer.repository.CustomerRepository;
-import com.example.market.dataConfig.CartServiceTestDataConfig;
+import com.example.market.dataConfig.ServiceTestDataConfig;
 import com.example.market.product.entity.Product;
 import com.example.market.product.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-@Import(CartServiceTestDataConfig.class)
+@Import(ServiceTestDataConfig.class)
 @Transactional
-@ActiveProfiles("cart")
+@ActiveProfiles("service")
 public class CartServiceTest {
     @Autowired
     private TransactionTemplate transactionTemplate;
