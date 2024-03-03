@@ -1,10 +1,14 @@
 package com.example.market.customer;
 
+import com.example.market.cart.entity.Cart;
+import com.example.market.cart.repository.CartRepository;
 import com.example.market.customer.dto.AuthorityDto;
 import com.example.market.customer.dto.CustomerDto;
 import com.example.market.customer.entity.Customer;
+import com.example.market.customer.repository.AuthorityRepository;
 import com.example.market.customer.repository.CustomerRepository;
 import com.example.market.customer.service.CustomerService;
+import com.example.market.exception.DuplicateMemberException;
 import com.example.market.security.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +36,10 @@ public class CustomerServiceTest {
     private CustomerRepository customerRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private AuthorityRepository authorityRepository;
+    @Mock
+    private CartRepository cartRepository;
 
     @InjectMocks
     private CustomerService customerService;
@@ -42,14 +50,20 @@ public class CustomerServiceTest {
         when(customerRepository.findByCustomerName(Mockito.anyString())).thenReturn(Optional.empty());
         when(customerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.empty());
         when(customerRepository.findByPhoneNumber(Mockito.anyString())).thenReturn(Optional.empty());
-
         when(passwordEncoder.encode(Mockito.anyString())).thenReturn("encodedPassword");
 
         CustomerDto customerDto = createTestCustomerDto();
 
+        Customer savedCustomer = new Customer();
+        Cart savedCart = new Cart();
+
+        when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
+        when(cartRepository.save(any(Cart.class))).thenReturn(savedCart); // 장바구니 저장 로직 목킹
+
         customerService.register(customerDto);
 
         Mockito.verify(customerRepository, Mockito.times(1)).save(any(Customer.class));
+        Mockito.verify(cartRepository, Mockito.times(1)).save(any(Cart.class));
 
     }
 
@@ -71,7 +85,7 @@ public class CustomerServiceTest {
                 .authorityDtoSet(Collections.singleton(authority))
                 .build();
 
-        assertThrows(IllegalArgumentException.class, () -> customerService.register(customerDto));
+        assertThrows(DuplicateMemberException.class, () -> customerService.register(customerDto));
     }
 
 

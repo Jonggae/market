@@ -29,7 +29,7 @@ public class LoginProvider implements AuthenticationProvider {
         if (new BCryptPasswordEncoder().matches(password, userDetails.getPassword())) {
             return new UsernamePasswordAuthenticationToken(customerName, password, userDetails.getAuthorities());
         } else {
-            throw new BadCredentialsException("로그인 실패 " + customerName);
+            throw new BadCredentialsException("로그인 실패");
         }
     }
 

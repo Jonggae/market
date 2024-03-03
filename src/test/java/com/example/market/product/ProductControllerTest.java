@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -51,14 +51,13 @@ public class ProductControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productDto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.productName").value("테스트 상품"));
-    }
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(productDto.getProductName()+ " 해당 상품 등록이 완료되었습니다."));    }
 
     @Test
     @DisplayName("전체 상품목록 조회 테스트")
     void getAllProductsTest() throws Exception {
-        List<ProductDto> allProducts = Arrays.asList(productDto);
+        List<ProductDto> allProducts = Collections.singletonList(productDto);
         when(productService.showAllProducts()).thenReturn(allProducts);
 
         mockMvc.perform(get("/api/products"))

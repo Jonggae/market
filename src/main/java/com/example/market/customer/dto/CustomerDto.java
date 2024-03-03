@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerDto {
-
+    private Long id;
     private String customerName;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -29,12 +29,14 @@ public class CustomerDto {
         if (customer == null) return null;
 
         return CustomerDto.builder()
+                .id(customer.getId())
                 .customerName(customer.getCustomerName())
                 .phoneNumber(customer.getPhoneNumber())
                 .email(customer.getEmail())
                 .authorityDtoSet(customer.getAuthorities().stream()
                         .map(authority -> AuthorityDto.builder().authorityName(authority.getAuthorityName()).build())
                         .collect(Collectors.toSet()))
+
                 .build();
     }
 }
