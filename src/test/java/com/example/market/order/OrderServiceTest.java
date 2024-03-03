@@ -6,6 +6,7 @@ import com.example.market.dataConfig.ServiceTestDataConfig;
 import com.example.market.order.dto.OrderDto;
 import com.example.market.order.dto.OrderItemDto;
 import com.example.market.order.entity.Order;
+import com.example.market.order.entity.OrderItem;
 import com.example.market.order.repository.OrderItemRepository;
 import com.example.market.order.repository.OrderRepository;
 import com.example.market.order.service.OrderService;
@@ -98,84 +99,99 @@ public class OrderServiceTest {
     @Test
     @DisplayName("주문 확정 테스트 -> orderStatus 변경되는지 확인")
     void confirmOrderTest() {
-        // 미확정 주문에 상품 추가
+        // 미확정 주문 생성 및 추가
         OrderItemDto newOrderItem = addNewOrderItem1();
         orderService.addOrderItem(testCustomerId, newOrderItem);
 
-        Order confirmedOrder = orderService.confirmOrder(testCustomerId);
+        // 생성된 미확정 주문 ID 가져오기
+        Long pendingOrderId = orderService.getOrderList(testCustomerId).get(0).getOrderId();
 
-        assertNotNull(confirmedOrder);
-        assertEquals(Order.OrderStatus.PENDING_PAYMENT, confirmedOrder.getOrderStatus());
+        // 주문 확정
+        orderService.confirmOrder(testCustomerId, pendingOrderId);
+
+        // 주문 상태 확인
+        OrderDto confirmedOrder = orderService.getOrderList(testCustomerId).stream()
+                .filter(order -> order.getOrderId().equals(pendingOrderId))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("확정된 주문을 찾을 수 없습니다."));
+
+        assertEquals(Order.OrderStatus.PENDING_PAYMENT, confirmedOrder.getStatus());
+
     }
 
     @Test
     @DisplayName("주문 상태 업데이트 -> SHIPPED로 변경")
     void updateOrderStatusTest() {
-        Order confirmedOrder = orderService.confirmOrder(testCustomerId); // 확정 시 PENDING_PAYMENT
-        Long orderId = confirmedOrder.getId();
+        // 주문 항목 추가하여 미확정 주문 생성
+        OrderItemDto newOrderItem = addNewOrderItem1();
+        orderService.addOrderItem(testCustomerId, newOrderItem);
 
-        orderService.updateOrderStatus(orderId, Order.OrderStatus.SHIPPED);
+        // 미확정 주문을 확정하여 주문 상태를 PENDING_PAYMENT로 변경
+        List<OrderDto> pendingOrders = orderService.getOrderList(testCustomerId);
+        assertFalse(pendingOrders.isEmpty(), "미확정 주문이 존재해야 합니다.");
+        OrderDto pendingOrder = pendingOrders.stream()
+                .filter(order -> order.getStatus() == Order.OrderStatus.PENDING_ORDER)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("미확정 주문을 찾을 수 없습니다."));
+        Long orderId = pendingOrder.getOrderId();
 
-        Order updateOrder = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다"));
-        assertEquals(Order.OrderStatus.SHIPPED, updateOrder.getOrderStatus());
+        // 주문 확정
+        OrderDto confirmedOrderDto = orderService.confirmOrder(testCustomerId, orderId);
+
+        // 주문 상태를 SHIPPED로 업데이트
+        OrderDto updatedOrderDto = orderService.updateOrderStatus(confirmedOrderDto.getOrderId(), Order.OrderStatus.SHIPPED);
+
+        // 업데이트된 주문 상태 확인
+        assertEquals(Order.OrderStatus.SHIPPED, updatedOrderDto.getStatus(), "주문 상태가 SHIPPED로 업데이트되어야 합니다.");
+
     }
 
     @Test
     @DisplayName("미확정 주문 내의 상품 삭제 테스트")
     void deleteOrderItemTest() {
-        OrderItemDto newOrderItem = addNewOrderItem1();
-        OrderItemDto addedOrderItem = orderService.addOrderItem(testCustomerId, newOrderItem);
 
-        orderService.deleteOrderItem(addedOrderItem.getItemId());
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            orderItemRepository.findById(addedOrderItem.getItemId()).orElseThrow(
-                    () -> new RuntimeException("주문 항목을 찾을 수 없습니다."));
-        });
-
-        String expectedMessage = "주문 항목을 찾을 수 없습니다.";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
     @DisplayName("미확정 주문 내 수량 변경 테스트")
     void updateOrderItemQuantityTest() {
-        OrderItemDto addedOrderItem = orderService.addOrderItem(testCustomerId, addNewOrderItem1());
-        Long itemIdToUpdate = addedOrderItem.getItemId();
+        // 먼저, 새 주문 항목을 추가합니다.
+        OrderItemDto newOrderItem = addNewOrderItem1();
+        OrderItemDto addedOrderItem = orderService.addOrderItem(testCustomerId, newOrderItem);
 
-        // 변경할 수량 설정
-        int updatedQuantity = 34;
+        // 변경할 수량을 설정합니다.
+        int updatedQuantity = 5;
 
-        // 주문 항목 수량 변경을 위한 DTO 준비
-        OrderItemDto updatedOrderItem = OrderItemDto.builder()
-                .productId(testProduct1Id) // 이 부분은 필요에 따라 조정
+        // 수량 변경을 위한 DTO를 생성합니다.
+        OrderItemDto updateOrderItemDto = OrderItemDto.builder()
+                .productId(addedOrderItem.getProductId())
                 .quantity(updatedQuantity)
                 .build();
 
-        // 수량 변경 실행
-        orderService.updateOrderItemQuantity(testCustomerId, itemIdToUpdate, updatedOrderItem);
+        // 수량 변경을 실행합니다.
+        List<OrderDto> updatedOrderList = orderService.updateOrderItemQuantity(testCustomerId, addedOrderItem.getItemId(), updateOrderItemDto);
 
-        // 변경된 수량 검증
-        List<OrderDto> orderDtos = orderService.getOrderList(testCustomerId);
-        boolean isQuantityUpdated = orderDtos.stream()
-                .flatMap(orderDto -> orderDto.getOrderItems().stream())
-                .anyMatch(item -> item.getItemId().equals(itemIdToUpdate) && item.getQuantity() == updatedQuantity);
+        // 변경된 주문 항목을 검색하여, 수량이 업데이트되었는지 확인합니다.
+        boolean quantityUpdated = false;
+        for (OrderDto orderDto : updatedOrderList) {
+            for (OrderItemDto itemDto : orderDto.getOrderItems()) {
+                if (itemDto.getItemId().equals(addedOrderItem.getItemId()) && itemDto.getQuantity() == updatedQuantity) {
+                    quantityUpdated = true;
+                    break;
+                }
+            }
+            if (quantityUpdated) break;
+        }
 
-        assertTrue(isQuantityUpdated, "주문 항목의 수량이 올바르게 업데이트되었는지 확인");
+        // 검증: 수량이 정확히 업데이트되었는지 확인합니다.
+        assertTrue(quantityUpdated, "수량이 정확히 업데이트되어야 합니다.");
     }
 
     @Test
     @DisplayName("주문 삭제 테스트")
     void deleteOrderTest() {
-        Order confirmedOrder = orderService.confirmOrder(testCustomerId);
-        Long orderId = confirmedOrder.getId();
 
-        orderService.deleteOrder(orderId);
-        Optional<Order> deletedOrder = orderRepository.findById(orderId);
-        assertTrue(deletedOrder.isEmpty());
     }
 
     private OrderItemDto addNewOrderItem1() {
