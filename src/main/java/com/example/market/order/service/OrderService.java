@@ -64,12 +64,9 @@ public class OrderService {
 
     // 미확정 주문에 상품 추가하기 (아직 주문하기를 누르기 전임)
     public OrderItemDto addOrderItem(Long customerId, OrderItemDto orderItemDto) {
-        // 고객 정보 조회
         customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("해당 유저의 정보를 찾을 수 없습니다."));
-        // 고객의 미확인 주문 조회
         Optional<Order> existingOrder = orderRepository.findByCustomerIdAndOrderStatus(customerId, OrderStatus.PENDING_ORDER);
-        // 미확인 주문이 없으면 새로운 미확인 주문 생성
         Order order = existingOrder.orElseGet(() -> createPendingOrder(customerId));
 
         Product product = productRepository.findById(orderItemDto.getProductId())

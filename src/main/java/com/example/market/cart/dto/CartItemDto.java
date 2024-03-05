@@ -18,7 +18,7 @@ public class CartItemDto {
     private Long productId;
     private String productName;
     private Integer quantity;
-    private Double price;
+    private Long price;
 
     public static CartItemDto from(CartItem cartItem) {
         return CartItemDto.builder()
