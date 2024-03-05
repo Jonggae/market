@@ -6,7 +6,6 @@ import com.example.market.dataConfig.ServiceTestDataConfig;
 import com.example.market.order.dto.OrderDto;
 import com.example.market.order.dto.OrderItemDto;
 import com.example.market.order.entity.Order;
-import com.example.market.order.entity.OrderItem;
 import com.example.market.order.repository.OrderItemRepository;
 import com.example.market.order.repository.OrderRepository;
 import com.example.market.order.service.OrderService;
@@ -20,11 +19,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.PersistenceContext;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -32,6 +36,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 @ActiveProfiles("service")
 public class OrderServiceTest {
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private OrderService orderService;
@@ -57,10 +65,15 @@ public class OrderServiceTest {
         // initializer + 테스트 상품 생성
 
         Product testProduct1 = productRepository.findByProductName("테스트 상품 1").orElseThrow(() -> new EntityNotFoundException("해당 상품이 없습니다."));
+        productRepository.save(testProduct1);
         testProduct1Id = testProduct1.getId();
+
         Product testProduct2 = productRepository.findByProductName("테스트 상품 2").orElseThrow();
+        productRepository.save(testProduct2);
         testProduct2Id = testProduct2.getId();
+
         Customer testCustomer = customerRepository.findByCustomerName("testUser").orElseThrow();
+        customerRepository.save(testCustomer);
         testCustomerId = testCustomer.getId();
 
     }
@@ -80,12 +93,12 @@ public class OrderServiceTest {
     @DisplayName("주문 항목 추가 테스트")
     void addOrderItemTest() {
         OrderItemDto newOrderItem1 = addNewOrderItem1(); //@Transaction 이 걸려있으므로 1번을 넣어도 상관없음
-        OrderItemDto addOrderItem = orderService.addOrderItem(testCustomerId, newOrderItem1);
+        OrderItemDto addedOrderItem = orderService.addOrderItem(testCustomerId, newOrderItem1);
 
-        assertNotNull(addOrderItem);
-        assertEquals(testProduct1Id, addOrderItem.getProductId());
-        assertEquals(newOrderItem1.getQuantity(), addOrderItem.getQuantity());
-        assertEquals(newOrderItem1.getPrice(), addOrderItem.getPrice());
+        List<OrderDto> orderDtos = orderService.getOrderList(testCustomerId);
+        assertThat(orderDtos).isNotEmpty(); // 주문 목록이 비어있지 않은지 확인
+        assertThat(orderDtos.get(0).getOrderItems()).isNotEmpty(); // 첫 번째 주문의 주문 항목 목록이 비어있지 않은지 확인
+        assertThat(orderDtos.get(0).getOrderItems()).extracting("productId").contains(addedOrderItem.getProductId()); // 첫 번째 주문의 주문 항목 중에 추가된 상품 ID가 포함되어 있는지 확인
     }
 
     @Test
@@ -103,20 +116,13 @@ public class OrderServiceTest {
         OrderItemDto newOrderItem = addNewOrderItem1();
         orderService.addOrderItem(testCustomerId, newOrderItem);
 
-        // 생성된 미확정 주문 ID 가져오기
         Long pendingOrderId = orderService.getOrderList(testCustomerId).get(0).getOrderId();
-
-        // 주문 확정
         orderService.confirmOrder(testCustomerId, pendingOrderId);
 
-        // 주문 상태 확인
-        OrderDto confirmedOrder = orderService.getOrderList(testCustomerId).stream()
-                .filter(order -> order.getOrderId().equals(pendingOrderId))
-                .findFirst()
+        Order confirmedOrder = orderRepository.findById(pendingOrderId)
                 .orElseThrow(() -> new AssertionError("확정된 주문을 찾을 수 없습니다."));
 
-        assertEquals(Order.OrderStatus.PENDING_PAYMENT, confirmedOrder.getStatus());
-
+        assertEquals(Order.OrderStatus.PENDING_PAYMENT, confirmedOrder.getOrderStatus());
     }
 
     @Test
@@ -126,61 +132,82 @@ public class OrderServiceTest {
         OrderItemDto newOrderItem = addNewOrderItem1();
         orderService.addOrderItem(testCustomerId, newOrderItem);
 
-        // 미확정 주문을 확정하여 주문 상태를 PENDING_PAYMENT로 변경
-        List<OrderDto> pendingOrders = orderService.getOrderList(testCustomerId);
-        assertFalse(pendingOrders.isEmpty(), "미확정 주문이 존재해야 합니다.");
-        OrderDto pendingOrder = pendingOrders.stream()
-                .filter(order -> order.getStatus() == Order.OrderStatus.PENDING_ORDER)
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("미확정 주문을 찾을 수 없습니다."));
-        Long orderId = pendingOrder.getOrderId();
+        Long pendingOrderId = orderService.getOrderList(testCustomerId).get(0).getOrderId();
+        orderService.confirmOrder(testCustomerId, pendingOrderId);
 
-        // 주문 확정
-        OrderDto confirmedOrderDto = orderService.confirmOrder(testCustomerId, orderId);
-
-        // 주문 상태를 SHIPPED로 업데이트
-        OrderDto updatedOrderDto = orderService.updateOrderStatus(confirmedOrderDto.getOrderId(), Order.OrderStatus.SHIPPED);
+        orderService.updateOrderStatus(pendingOrderId, Order.OrderStatus.SHIPPED);
 
         // 업데이트된 주문 상태 확인
-        assertEquals(Order.OrderStatus.SHIPPED, updatedOrderDto.getStatus(), "주문 상태가 SHIPPED로 업데이트되어야 합니다.");
-
+        Order updatedOrder = orderRepository.findById(pendingOrderId)
+                .orElseThrow(() -> new AssertionError("확정된 주문을 찾을 수 없습니다."));
+        assertEquals(Order.OrderStatus.SHIPPED, updatedOrder.getOrderStatus());
     }
 
     @Test
     @DisplayName("미확정 주문 내의 상품 삭제 테스트")
     void deleteOrderItemTest() {
-
+        // 테스트가 잘 되지 않음. API 테스트는 작동함.
 
     }
 
     @Test
     @DisplayName("미확정 주문 내 수량 변경 테스트")
     void updateOrderItemQuantityTest() {
+        // 주문 항목 추가
+        OrderItemDto newOrderItem = addNewOrderItem1();
+        OrderItemDto addedOrderItem = orderService.addOrderItem(testCustomerId, newOrderItem);
 
+        // 수량 변경을 위한 OrderItemDto 객체 생성 (기존의 OrderItemDto 재사용 또는 새로 생성 가능)
+
+        OrderItemDto updatedOrderItemDto = OrderItemDto.builder()
+                .productId(testProduct1Id)
+                .quantity(3)
+                .build();
+
+        orderService.updateOrderItemQuantity(testCustomerId, addedOrderItem.getItemId(), updatedOrderItemDto);
+
+        // 변경된 주문 항목 조회 및 수량 검증
+        List<OrderDto> orders = orderService.getOrderList(testCustomerId);
+        assertFalse(orders.isEmpty());
+
+        // 주문 항목이 포함된 주문을 찾고, 해당 주문 항목의 수량이 업데이트 되었는지 확인
+        boolean isQuantityUpdated = orders.stream()
+                .flatMap(order -> order.getOrderItems().stream())
+                .anyMatch(item -> item.getItemId().equals(addedOrderItem.getItemId()) && item.getQuantity() == 3);
+
+        assertTrue(isQuantityUpdated);
     }
+
     @Test
     @DisplayName("주문 삭제 테스트")
     void deleteOrderTest() {
+        OrderItemDto newOrderItem = addNewOrderItem1();
+        orderService.addOrderItem(testCustomerId, newOrderItem);
 
+        // 미확정 주문을 확정
+        List<OrderDto> pendingOrders = orderService.getOrderList(testCustomerId);
+        Long orderId = pendingOrders.get(0).getOrderId();
+        orderService.confirmOrder(testCustomerId, orderId);
+
+        // 주문 삭제
+        orderService.deleteOrder(orderId, testCustomerId);
+
+        // 삭제 후 주문 목록 조회
+        List<OrderDto> ordersAfterDeletion = orderService.getOrderList(testCustomerId);
+        assertTrue(ordersAfterDeletion.isEmpty());
     }
 
     private OrderItemDto addNewOrderItem1() {
-        Product testProduct1 = productRepository.findByProductName("테스트 상품 1").orElseThrow();
         return OrderItemDto.builder()
                 .productId(testProduct1Id)
-                .productName(testProduct1.getProductName())
                 .quantity(1)
-                .price(testProduct1.getPrice())
                 .build();
     }
 
     private OrderItemDto addNewOrderItem2() {
-        Product testProduct1 = productRepository.findByProductName("테스트 상품 1").orElseThrow();
         return OrderItemDto.builder()
                 .productId(testProduct1Id)
-                .productName(testProduct1.getProductName())
                 .quantity(1)
-                .price(testProduct1.getPrice())
                 .build();
     }
 

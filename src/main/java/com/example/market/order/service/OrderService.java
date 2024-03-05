@@ -13,10 +13,11 @@ import com.example.market.product.entity.Product;
 import com.example.market.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +28,7 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
+    private final EntityManager entityManager;
 
     // 확정 주문은 미확정 주문들의 목록에서 [주문하기] 버튼을 눌러 확정된 상태이며, 결제 유무는 고려하지 않았음.(결제 이전으로 설정)
 
@@ -66,8 +68,9 @@ public class OrderService {
     public OrderItemDto addOrderItem(Long customerId, OrderItemDto orderItemDto) {
         customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("해당 유저의 정보를 찾을 수 없습니다."));
-        Optional<Order> existingOrder = orderRepository.findByCustomerIdAndOrderStatus(customerId, OrderStatus.PENDING_ORDER);
-        Order order = existingOrder.orElseGet(() -> createPendingOrder(customerId));
+
+        Order order = orderRepository.findByCustomerIdAndOrderStatus(customerId, OrderStatus.PENDING_ORDER)
+                .orElseGet(()-> createPendingOrder(customerId));
 
         Product product = productRepository.findById(orderItemDto.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다"));
@@ -77,6 +80,8 @@ public class OrderService {
                 .product(product)
                 .quantity(orderItemDto.getQuantity())
                 .build();
+
+        newOrderItem = orderItemRepository.save(newOrderItem);
 
         order.getOrderItems().add(newOrderItem);
         orderRepository.save(order);
@@ -123,6 +128,7 @@ public class OrderService {
     }
 
     // 주문 삭제하기
+    @Transactional
     public List<OrderDto> deleteOrder(Long orderId, Long customerId) {
         Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));

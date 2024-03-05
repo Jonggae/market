@@ -84,7 +84,7 @@ public class OrderController {
 
     }
 
-    // 주문 삭제 ?? 이건 일단 놔돔. 로직을 다시 짜봐야 할듯.
+    // 주문 삭제 ?? 이건 일단 놔돔. 로직을 다시 짜봐야 할듯. 필요한 로직인가?
     @DeleteMapping("/{customerId}/{orderId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<OrderDto>> deleteOrder(@PathVariable Long orderId, @PathVariable Long customerId) {
