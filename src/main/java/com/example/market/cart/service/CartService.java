@@ -79,11 +79,11 @@ public class CartService {
 
         // 장바구니 전체 비우기
         @Transactional //Transactional 필요
-        public CartDto clearCart (Long customerId){
+        public void clearCart (Long customerId){
             Cart cart = cartRepository.findByCustomerId(customerId)
                     .orElseThrow(() -> new RuntimeException("장바구니가 없습니다"));
             cartItemRepository.deleteAllByCart(cart);
-            return CartDto.from(cart);
+            CartDto.from(cart);
         }
 
         // 인증객체 내의 사용자 정보 가져오기 위해 customerId 찾기

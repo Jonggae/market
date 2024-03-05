@@ -1,6 +1,7 @@
 package com.example.market.product.controller;
 
 import com.example.market.commons.apiResponse.ApiResponseDto;
+import com.example.market.commons.apiResponse.ApiResponseUtil;
 import com.example.market.exception.NotFoundProductException;
 import com.example.market.product.dto.ProductDto;
 import com.example.market.product.service.ProductService;
@@ -10,8 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,16 +24,14 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ApiResponseDto<ProductDto>> addProduct(@RequestBody ProductDto productDto) {
         ProductDto updatedProductDto = productService.addProduct(productDto);
-        ApiResponseDto<ProductDto> response = new ApiResponseDto<>(productDto.getProductName() + " : 해당 상품 등록이 완료되었습니다.", updatedProductDto);
-        return ResponseEntity.ok(response);
+        return ApiResponseUtil.successResponse(productDto.getProductName() + " : 해당 상품 등록이 완료되었습니다.", updatedProductDto);
     }
 
     // 전체 상품목록 조회
     @GetMapping
     public ResponseEntity<ApiResponseDto<List<ProductDto>>> getAllProducts() {
         List<ProductDto> products = productService.showAllProducts();
-        ApiResponseDto<List<ProductDto>> response = new ApiResponseDto<>("전체 상품 리스트입니다", products);
-        return ResponseEntity.ok(response);
+        return ApiResponseUtil.successResponse("전체 상품 리스트입니다.", products);
     }
 
     // 상품 단일 조회
@@ -42,10 +39,9 @@ public class ProductController {
     public ResponseEntity<ApiResponseDto<ProductDto>> getProduct(@PathVariable Long id) {
         try {
             ProductDto product = productService.showProductInfo(id);
-            ApiResponseDto<ProductDto> response = new ApiResponseDto<>(product.getProductName() + "의 상품 정보입니다", product);
-            return ResponseEntity.ok(response);
+            return ApiResponseUtil.successResponse(product.getProductName() + "의 상품 정보입니다", product);
         } catch (NotFoundProductException e) {
-            return ResponseEntity.ok(new ApiResponseDto<>("해당 상품이 존재하지 않습니다."));
+            return ApiResponseUtil.successResponseString("해당 상품이 존재하지 않습니다."); //ApiResponseUtil 수정 필요?
         }
     }
 
@@ -54,8 +50,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDto<ProductDto>> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
         ProductDto updatedProduct = productService.updateProduct(id, productDto);
-        ApiResponseDto<ProductDto> response = new ApiResponseDto<>("상품 정보가 수정 되었습니다", updatedProduct);
-        return ResponseEntity.ok(response);
+        return ApiResponseUtil.successResponse("상품 정보가 수정 되었습니다.", updatedProduct);
     }
 
     // 상품 삭제
@@ -63,9 +58,6 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponseDto<List<ProductDto>>> deleteProduct(@PathVariable Long id) {
         List<ProductDto> updatedProducts = productService.deleteProduct(id);
-
-        String message = "상품이 삭제 되었습니다";
-        ApiResponseDto<List<ProductDto>> response = new ApiResponseDto<>(message, updatedProducts);
-        return ResponseEntity.ok(response);
+        return ApiResponseUtil.successResponse("상품이 삭제 되었습니다.", updatedProducts);
     }
 }
