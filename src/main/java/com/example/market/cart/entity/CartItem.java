@@ -36,7 +36,7 @@ public class CartItem {
     }
 
     // 장바구니 내의 갯수 + 상품가격을 이용한 합계 가격
-    public double getTotalPrice() {
+    public Long getTotalPrice() {
         return product.getPrice() * quantity;
     }
     @Override

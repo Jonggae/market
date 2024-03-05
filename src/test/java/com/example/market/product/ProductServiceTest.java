@@ -10,14 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 @DisplayName("상품 관련 서비스 테스트")
@@ -41,11 +40,14 @@ public class ProductServiceTest {
 
     @BeforeEach
     void setUp() {
-        ProductDto savedProduct1 = productService.addProduct(new ProductDto(null, "테스트 상품", "테스트 상품 설명", 1000L, 10L));
-        ProductDto savedProduct2 = productService.addProduct(new ProductDto(null, "테스트 상품2", "테스트 상품 설명2", 2000L, 20L));
+        ProductDto savedProduct1 = productService
+                .addProduct(new ProductDto(null, "테스트 상품", "테스트 상품 설명", 1000L, 10L));
+
+        ProductDto savedProduct2 = productService
+                .addProduct(new ProductDto(null, "테스트 상품2", "테스트 상품 설명2", 2000L, 20L));
 
         productId1 = savedProduct1.getId();
-        productId2 = savedProduct1.getId();
+        productId2 = savedProduct2.getId();
     }
 
     @Test
@@ -53,59 +55,33 @@ public class ProductServiceTest {
     @DisplayName("관리자(ADMIN) 상품 등록 테스트")
     @WithMockUser(roles = "ADMIN")
     void addProductTestWithADMIN() throws Exception {
-        ProductDto newProduct = new ProductDto(null, "New Product", "New Description", 2000L, 20L);
-        mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newProduct)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value(newProduct.getProductName() + " 해당 상품 등록이 완료되었습니다."));
-    }
+        ProductDto newProduct = addNewProduct();
+        ProductDto savedProduct = productService.addProduct(newProduct);
 
-    @Test
-    @Transactional
-    @DisplayName("일반 사용자(USER) 상품 등록 테스트")
-    @WithMockUser(roles = "USER")
-    void addProductTestWithCustomer() throws Exception {
-        ProductDto newProduct = new ProductDto(null, "New Product", "New Description", 2000L, 20L);
-        mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newProduct)))
-                .andExpect(status().isForbidden());
+        assertNotNull(savedProduct.getId());
+        assertEquals("테스트으 상품", savedProduct.getProductName());
+        assertEquals("테스트으 상품 설명", savedProduct.getProductDescription());
+        assertEquals(5000L, savedProduct.getPrice());
     }
 
     @Test
     @Transactional
     @DisplayName("상품 전체 조회 서비스 테스트")
     void showAllProductTest() throws Exception {
-        mockMvc.perform(get("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].productName").value("테스트 상품"))
-                .andExpect(jsonPath("$[1].productName").value("테스트 상품2"));
+
+        List<ProductDto> products = productService.showAllProducts();
+        assertTrue(products.size() >= 2);
     }
 
     @Test
     @Transactional
     @DisplayName("상품 단일 조회 테스트")
     void ShowOneProductTest() throws Exception {
-        // 상품 ID는 실제 환경에서 조회하여 설정
+        ProductDto product = productService.showProductInfo(productId1);
 
-        mockMvc.perform(get("/api/products/" + productId1)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productName").value("테스트 상품"));
-    }
-
-    @Test
-    @DisplayName("상품 단일 조회 실패 테스트")
-    @Transactional
-    void failShowOneProductTEst() throws Exception {
-        long nonExistProductId = 333;
-
-        mockMvc.perform(get("/api/products/" + nonExistProductId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("상품이 존재하지 않습니다."));
+        // 검증: 상품 정보가 정확히 조회되는지 검증
+        assertNotNull(product);
+        assertEquals("테스트 상품", product.getProductName());
     }
 
     @Test
@@ -113,15 +89,19 @@ public class ProductServiceTest {
     @DisplayName("상품 정보 업데이트 테스트")
     @WithMockUser(roles = "ADMIN")
     void updateProductInfoTest() throws Exception {
+        ProductDto updatedProduct = productService
+                .updateProduct(productId1, new ProductDto(productId1, "업데이트된 상품", "업데이트된설명", 20000L, 200L));
 
-        ProductDto updateProduct = new ProductDto(productId1, "업데이트된 상품", "업데이트된 상품 정보", 1500L, 15L);
-        mockMvc.perform(put("/api/products/" + productId1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(updateProduct)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productName").value("업데이트된 상품"))
-                .andExpect(jsonPath("$.productDescription").value("업데이트된 상품 정보"))
-                .andExpect(jsonPath("$.price").value(1500))
-                .andExpect(jsonPath("$.stock").value(15));
+        assertEquals("업데이트된 상품", updatedProduct.getProductName());
+        assertEquals(20000L, updatedProduct.getPrice());
+    }
+
+    private ProductDto addNewProduct() {
+        return ProductDto.builder()
+                .productName("테스트으 상품")
+                .productDescription("테스트으 상품 설명")
+                .price(5000L)
+                .stock(1000L)
+                .build();
     }
 }

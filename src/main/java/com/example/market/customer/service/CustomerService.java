@@ -11,6 +11,8 @@ import com.example.market.exception.DuplicateMemberException;
 import com.example.market.exception.NotFoundMemberException;
 import com.example.market.security.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -73,5 +75,12 @@ public class CustomerService {
         if (customerRepository.findByPhoneNumber(phoneNumber).isPresent()) {
             throw new DuplicateMemberException("이미 사용중인 전화번호입니다");
         }
+    }
+
+    public Long findCustomerIdByAuthentication(Authentication authentication) {
+        String customerName = authentication.getName();
+        Customer customer = customerRepository.findByCustomerName(customerName)
+                .orElseThrow(() -> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다."));
+        return customer.getId();
     }
 }

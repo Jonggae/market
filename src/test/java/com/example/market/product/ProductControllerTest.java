@@ -1,5 +1,6 @@
 package com.example.market.product;
 
+import com.example.market.exception.NotFoundProductException;
 import com.example.market.product.controller.ProductController;
 import com.example.market.product.dto.ProductDto;
 import com.example.market.product.service.ProductService;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProductController.class)
+@DisplayName("상품 관련 컨트롤러 테스트")
 @WithMockUser(roles = "ADMIN")
 public class ProductControllerTest {
     @Autowired
@@ -52,7 +54,8 @@ public class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value(productDto.getProductName()+ " 해당 상품 등록이 완료되었습니다."));    }
+                .andExpect(jsonPath("$.message").value(productDto.getProductName() + " : 해당 상품 등록이 완료되었습니다."));
+    }
 
     @Test
     @DisplayName("전체 상품목록 조회 테스트")
@@ -62,7 +65,11 @@ public class ProductControllerTest {
 
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].productName").value("테스트 상품"));
+                .andExpect(jsonPath("$.message").value("전체 상품 리스트입니다."))
+                .andExpect(jsonPath("$.data[0].productName").value("테스트 상품"))
+                .andExpect(jsonPath("$.data[0].productDescription").value("테스트 상품 정보"))
+                .andExpect(jsonPath("$.data[0].price").value(1000L))
+                .andExpect(jsonPath("$.data[0].stock").value(10L));
     }
 
     @Test
@@ -72,13 +79,25 @@ public class ProductControllerTest {
 
         mockMvc.perform(get("/api/products/{id}", productDto.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productName").value("테스트 상품"));
+                .andExpect(jsonPath("$.message").value(productDto.getProductName() + "의 상품 정보입니다"));
+    }
+
+    @Test
+    @DisplayName("상품 단일 조회 실패 테스트")
+    void failGetProductTest() throws Exception {
+        Long nonExistProductId = 4L;
+        when(productService.showProductInfo(nonExistProductId)).thenThrow(NotFoundProductException.class);
+
+        mockMvc.perform(get("/api/products/{id}", nonExistProductId)) // 없는 번호 조회
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("해당 상품이 존재하지 않습니다."));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("상품 업데이트 테스트")
+    @DisplayName("상품 정보 업데이트 테스트")
     void updateProductTest() throws Exception {
+
         when(productService.updateProduct(any(Long.class), any(ProductDto.class))).thenReturn(productDto);
 
         mockMvc.perform(put("/api/products/{id}", productDto.getId())
@@ -86,7 +105,9 @@ public class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productName").value("테스트 상품"));
+                .andExpect(jsonPath("$.data.productName").value("테스트 상품"))
+                .andExpect(jsonPath("$.message").value("상품 정보가 수정 되었습니다."));
+
     }
 
     @Test
@@ -95,6 +116,7 @@ public class ProductControllerTest {
     void deleteProductTest() throws Exception {
         mockMvc.perform(delete("/api/products/{id}", productDto.getId())
                         .with(csrf()))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("상품이 삭제 되었습니다."));
     }
 }
