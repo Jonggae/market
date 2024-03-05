@@ -61,9 +61,11 @@ public class ProductService {
     }
 
     // 상품 삭제
-    public void deleteProduct(Long productId) {
+    public List<ProductDto> deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다"));
         productRepository.delete(product);
+
+        return showAllProducts();
     }
 }
