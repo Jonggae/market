@@ -49,6 +49,7 @@ public class CartServiceTest {
     private Long testProduct1Id;
     private Long testProduct2Id;
 
+//    @Transactional
     @BeforeEach
     void setUp() {
         // 회원 정보는 initializer 사용

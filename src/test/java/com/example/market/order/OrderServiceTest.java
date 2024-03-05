@@ -65,15 +65,12 @@ public class OrderServiceTest {
         // initializer + 테스트 상품 생성
 
         Product testProduct1 = productRepository.findByProductName("테스트 상품 1").orElseThrow(() -> new EntityNotFoundException("해당 상품이 없습니다."));
-        productRepository.save(testProduct1);
         testProduct1Id = testProduct1.getId();
 
         Product testProduct2 = productRepository.findByProductName("테스트 상품 2").orElseThrow();
-        productRepository.save(testProduct2);
         testProduct2Id = testProduct2.getId();
 
         Customer testCustomer = customerRepository.findByCustomerName("testUser").orElseThrow();
-        customerRepository.save(testCustomer);
         testCustomerId = testCustomer.getId();
 
     }

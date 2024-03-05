@@ -25,6 +25,7 @@ public class CustomerCartCreationTest {
     private CartRepository cartRepository;
 
     @Test
+    @Transactional
     @DisplayName("회원 가입 시 장바구니 생성 확인")
     void whenRegisterThenCartIsCreated() {
         AuthorityDto authority = AuthorityDto.builder()
