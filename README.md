@@ -30,9 +30,14 @@
 ![market_ERD](https://github.com/Jonggae/market/assets/130136857/4b924235-3adb-47a6-965e-28611665f085)
 
 - [x] 테이블 설계
+  - ![tables.png](tables.png)
 - [x] 프로젝트 세팅
+  - Java 11, Spring 2.7.16
+  - MySQL, Postman
 - [x] 로그인 / 회원가입 api 개발
-- [ ] 상품, 장바구니, 주문 api 개발
+  - JWT, Spring Security
+- [x] 상품, 장바구니, 주문 api 개발
+  - 상품, 장바구니, 조회 CRUD
 ---
 # 회원 가입
 - https://jonggae.tistory.com/134
@@ -40,10 +45,10 @@
 
 JWT를 이용한 로그인 인증 방식을 사용하였음.
 
-Spring Security 내부에서 일어나는 로그인 과정을 정리해본다.
-
 * basic header로 전송되는 암호화된 username, password (HTTPS는 미구현)
-* UsernamePasswordAuthenticationToken 
+* UsernamePasswordAuthenticationToken
+* Authentication 객체 내의 사용자 정보를 통해 Contoller에 정보를 전달한다.
+* 
 
 
 
