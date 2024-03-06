@@ -2,6 +2,7 @@ package com.example.market.order.service;
 
 import com.example.market.customer.entity.Customer;
 import com.example.market.customer.repository.CustomerRepository;
+import com.example.market.exception.*;
 import com.example.market.order.dto.OrderDto;
 import com.example.market.order.dto.OrderItemDto;
 import com.example.market.order.entity.Order;
@@ -35,7 +36,7 @@ public class OrderService {
     // 미확정 주문 생성
     public Order createPendingOrder(Long customerId) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다."));
+                .orElseThrow(NotFoundMemberException::new);
 
         Order newOrder = Order.builder()
                 .customer(customer)
@@ -67,13 +68,13 @@ public class OrderService {
     // 미확정 주문에 상품 추가하기 (아직 주문하기를 누르기 전임)
     public OrderItemDto addOrderItem(Long customerId, OrderItemDto orderItemDto) {
         customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("해당 유저의 정보를 찾을 수 없습니다."));
+                .orElseThrow(NotFoundMemberException::new);
 
         Order order = orderRepository.findByCustomerIdAndOrderStatus(customerId, OrderStatus.PENDING_ORDER)
                 .orElseGet(() -> createPendingOrder(customerId));
 
         Product product = productRepository.findById(orderItemDto.getProductId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다"));
+                .orElseThrow(NotFoundProductException::new);
 
         OrderItem newOrderItem = OrderItem.builder()
                 .order(order)
@@ -93,7 +94,7 @@ public class OrderService {
     @Transactional
     public OrderDto confirmOrder(Long customerId, Long orderId) {
         Order extstingOrder = orderRepository.findByIdAndCustomerId(orderId, customerId)
-                .orElseThrow(() -> new RuntimeException("미확정 주문이 없습니다."));
+                .orElseThrow(NotFoundOrderException::new);
 
         for (OrderItem orderItem : extstingOrder.getOrderItems()) {
             Product product = orderItem.getProduct();
@@ -115,7 +116,7 @@ public class OrderService {
     // 결제, 배송 등 이후 주문 상태 업데이트
     public OrderDto updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+                .orElseThrow(NotFoundOrderException::new);
 
         if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.PENDING_ORDER) {
             for (OrderItem item : order.getOrderItems()) {
@@ -132,7 +133,7 @@ public class OrderService {
     // 미확정 주문 내 상품 수량 변경하기
     public List<OrderDto> updateOrderItemQuantity(Long customerId, Long orderItemId, OrderItemDto orderItemDto) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 주문 상품을 찾을 수 없습니다."));
+                .orElseThrow(NotFoundOrderItemException::new);
 
         Order order = orderItem.getOrder();
         validateOrderStatus(order);
@@ -141,7 +142,7 @@ public class OrderService {
         int quantityDifference = orderItemDto.getQuantity() - orderItem.getQuantity();
         int updatedStock = product.getStock() - quantityDifference;
         if (updatedStock < 0) {
-            throw new RuntimeException(product.getProductName() + " 상품의 재고가 부족합니다.");
+            throw new InsufficientStockException(product.getProductName());
         }
 
         product.setStock(updatedStock);
@@ -154,7 +155,7 @@ public class OrderService {
     //미확정 주문 내 상품 삭제하기
     public List<OrderDto> deleteOrderItem(Long customerId, Long orderItemId) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
-                .orElseThrow(() -> new RuntimeException("주문 항목을 찾을 수 없습니다."));
+                .orElseThrow(NotFoundOrderItemException::new);
 
         Product product = orderItem.getProduct();
         product.setStock(product.getStock() + orderItem.getQuantity());
@@ -168,7 +169,7 @@ public class OrderService {
     @Transactional
     public List<OrderDto> deleteOrder(Long orderId, Long customerId) {
         Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+                .orElseThrow(NotFoundOrderException::new);
         orderItemRepository.deleteAllByOrder(order);
 
         orderRepository.delete(order);

@@ -26,7 +26,7 @@ public class CartController {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         CartDto cartDto = cartService.getCartItems(customerId);
 
-        return ApiResponseUtil.successResponse(customerName + " 님의 장바구니 입니다.", cartDto);
+        return ApiResponseUtil.success(customerName + " 님의 장바구니 입니다.", cartDto,200);
     }
 
     // 내 장바구니 항목 추가
@@ -36,7 +36,7 @@ public class CartController {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         CartItemDto updatedCartItemDto = cartService.addCartItem(customerId, cartItemDto);
 
-        return ApiResponseUtil.successResponse(customerName+ " 님의 장바구니에 담겼습니다.", updatedCartItemDto);
+        return ApiResponseUtil.success(customerName+ " 님의 장바구니에 담겼습니다.", updatedCartItemDto,200);
     }
 
     // 장바구니 항목 수정
@@ -46,7 +46,7 @@ public class CartController {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         CartDto updatedCart = cartService.updateCartItem(customerId, itemId, cartItemDto);
 
-        return ApiResponseUtil.successResponse("수량이 변경되었습니다.", updatedCart);
+        return ApiResponseUtil.success("수량이 변경되었습니다.", updatedCart,200);
     }
 
     // 장바구니 항목 삭제
@@ -55,7 +55,7 @@ public class CartController {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         CartDto updatedCart = cartService.deleteCartItem(customerId, itemId);
 
-        return ApiResponseUtil.successResponse("상품이 삭제되었습니다.", updatedCart);
+        return ApiResponseUtil.success("상품이 삭제되었습니다.", updatedCart,200);
     }
 
     //장바구니 전체 비우기
@@ -63,6 +63,6 @@ public class CartController {
     public ResponseEntity<ApiResponseDto<String>> clearCart(Authentication authentication) {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         cartService.clearCart(customerId);
-        return ApiResponseUtil.successResponseString("장바구니를 비웠습니다");
+        return ApiResponseUtil.success("장바구니를 비웠습니다",null,200);
     }
 }
