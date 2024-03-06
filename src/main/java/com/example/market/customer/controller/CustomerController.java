@@ -19,9 +19,6 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.register(requestDto));
     }
 
-    // todo : Basic header로 CustomerName, Password 받아오기
-
-
     // 로그인 한 개인이 접근 가능한 내 정보 페이지
     @GetMapping("/my-info")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")

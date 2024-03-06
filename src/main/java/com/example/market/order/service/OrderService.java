@@ -70,7 +70,7 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("해당 유저의 정보를 찾을 수 없습니다."));
 
         Order order = orderRepository.findByCustomerIdAndOrderStatus(customerId, OrderStatus.PENDING_ORDER)
-                .orElseGet(()-> createPendingOrder(customerId));
+                .orElseGet(() -> createPendingOrder(customerId));
 
         Product product = productRepository.findById(orderItemDto.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다"));
@@ -90,9 +90,21 @@ public class OrderService {
     }
 
     // 주문을 확정함
+    @Transactional
     public OrderDto confirmOrder(Long customerId, Long orderId) {
         Order extstingOrder = orderRepository.findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(() -> new RuntimeException("미확정 주문이 없습니다."));
+
+        for (OrderItem orderItem : extstingOrder.getOrderItems()) {
+            Product product = orderItem.getProduct();
+            int remainingStock = product.getStock() - orderItem.getQuantity();
+
+            if (remainingStock <=0) {
+                throw new RuntimeException(product.getProductName() + " 상품의 재고가 부족합니다");
+            }
+            product.setStock(remainingStock);
+            productRepository.save(product);
+        }
 
         extstingOrder.setOrderStatus(OrderStatus.PENDING_PAYMENT); // 주문 확정이므로 상태 변경함
         extstingOrder.setOrderDate(LocalDateTime.now());
@@ -104,6 +116,15 @@ public class OrderService {
     public OrderDto updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+
+        if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.PENDING_ORDER) {
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = item.getProduct();
+                product.setStock(product.getStock() + item.getQuantity());
+                productRepository.save(product);
+            }
+        }
+
         order.setOrderStatus(newStatus);
         return OrderDto.from(orderRepository.save(order));
     }
@@ -111,17 +132,33 @@ public class OrderService {
     // 미확정 주문 내 상품 수량 변경하기
     public List<OrderDto> updateOrderItemQuantity(Long customerId, Long orderItemId, OrderItemDto orderItemDto) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상품이 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 주문 상품을 찾을 수 없습니다."));
+
+        Order order = orderItem.getOrder();
+        validateOrderStatus(order);
+
+        Product product = orderItem.getProduct();
+        int quantityDifference = orderItemDto.getQuantity() - orderItem.getQuantity();
+        int updatedStock = product.getStock() - quantityDifference;
+        if (updatedStock < 0) {
+            throw new RuntimeException(product.getProductName() + " 상품의 재고가 부족합니다.");
+        }
+
+        product.setStock(updatedStock);
+        productRepository.save(product);
         orderItem.setQuantity(orderItemDto.getQuantity());
         orderItemRepository.save(orderItem);
         return getOrderList(customerId);
-
     }
 
     //미확정 주문 내 상품 삭제하기
     public List<OrderDto> deleteOrderItem(Long customerId, Long orderItemId) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
                 .orElseThrow(() -> new RuntimeException("주문 항목을 찾을 수 없습니다."));
+
+        Product product = orderItem.getProduct();
+        product.setStock(product.getStock() + orderItem.getQuantity());
+        productRepository.save(product);
 
         orderItemRepository.delete(orderItem);
         return getOrderList(customerId);
@@ -137,4 +174,11 @@ public class OrderService {
         orderRepository.delete(order);
         return getOrderList(customerId);
     }
+
+    // 주문상태 체크
+     public void validateOrderStatus(Order order) {
+        if (!order.getOrderStatus().equals(OrderStatus.PENDING_ORDER)) {
+            throw new RuntimeException("주문 상태가 대기중이 아니므로 주문 항목의 수량을 변경할 수 없습니다.");
+        }
+     }
 }
