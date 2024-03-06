@@ -3,6 +3,6 @@ package com.example.market.exception;
 public class NotFoundProductException extends RuntimeException{
 
     public NotFoundProductException() {
-        super("해당 상품은 존재하지 않습니다.");
+        super("존재하지 않는 상품입니다.");
     }
 }

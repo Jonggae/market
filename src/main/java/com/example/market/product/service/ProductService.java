@@ -45,13 +45,12 @@ public class ProductService {
         return productRepository.findById(productId)
                 .map(ProductDto::from)
                 .orElseThrow(NotFoundProductException::new);
-
     }
 
     // 상품 업데이트
     public ProductDto updateProduct(Long productId, ProductDto productDto) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다" + productId));
+                .orElseThrow(NotFoundProductException::new);
         product.setProductName(productDto.getProductName());
         product.setProductDescription(productDto.getProductDescription());
         product.setPrice(productDto.getPrice());
@@ -63,7 +62,7 @@ public class ProductService {
     // 상품 삭제
     public List<ProductDto> deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다"));
+                .orElseThrow(NotFoundProductException::new);
         productRepository.delete(product);
 
         return showAllProducts();
