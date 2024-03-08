@@ -98,7 +98,7 @@ public class OrderService {
 
         for (OrderItem orderItem : extstingOrder.getOrderItems()) {
             Product product = orderItem.getProduct();
-            int remainingStock = product.getStock() - orderItem.getQuantity();
+            long remainingStock = product.getStock() - orderItem.getQuantity();
 
             if (remainingStock <=0) {
                 throw new RuntimeException(product.getProductName() + " 상품의 재고가 부족합니다");
@@ -139,8 +139,8 @@ public class OrderService {
         validateOrderStatus(order);
 
         Product product = orderItem.getProduct();
-        int quantityDifference = orderItemDto.getQuantity() - orderItem.getQuantity();
-        int updatedStock = product.getStock() - quantityDifference;
+        long quantityDifference = orderItemDto.getQuantity() - orderItem.getQuantity();
+        long updatedStock = product.getStock() - quantityDifference;
         if (updatedStock < 0) {
             throw new InsufficientStockException(product.getProductName());
         }

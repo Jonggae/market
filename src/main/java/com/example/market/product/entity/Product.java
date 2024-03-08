@@ -35,7 +35,7 @@ public class Product {
 
     //상품 재고
     @Column(name = "stock", nullable = false)
-    private int stock;
+    private Long stock;
 
 
     // todo: 상품은 주문, 장바구니와의 연결이 필요. 이후 개발과정에서 추가

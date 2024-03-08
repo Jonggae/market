@@ -16,7 +16,7 @@ public class ProductDto {
     private String productName;
     private String productDescription;
     private Long price;
-    private Integer stock;
+    private Long stock;
 
     public static ProductDto from(Product product) {
         return ProductDto.builder()
