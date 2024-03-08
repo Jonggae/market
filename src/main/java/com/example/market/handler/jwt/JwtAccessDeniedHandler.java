@@ -1,8 +1,10 @@
 package com.example.market.handler.jwt;
 
-import com.example.market.security.dto.ErrorDto;
+import com.example.market.commons.apiResponse.ApiResponseDto;
+import com.example.market.commons.apiResponse.ApiResponseUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
@@ -20,9 +22,11 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        ErrorDto errorDTO = new ErrorDto(HttpStatus.FORBIDDEN.value(), "접근 권한이 없습니다.", "해당 작업은 관리자만 가능합니다.");
+        ResponseEntity<ApiResponseDto<Object>> errorResponse = ApiResponseUtil.error(
+                "접근 권한이 없습니다", 403, "ACCESS_DENIED", "해당 작업은 관리자만 가능합니다");
+
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(new ObjectMapper().writeValueAsString(errorDTO));
+        response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
     }
 }

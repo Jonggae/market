@@ -1,8 +1,11 @@
 package com.example.market.handler.jwt;
 
+import com.example.market.commons.apiResponse.ApiResponseDto;
+import com.example.market.commons.apiResponse.ApiResponseUtil;
 import com.example.market.security.dto.ErrorDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -21,9 +24,14 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        ErrorDto errorDTO = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), "잘못된 인증 정보입니다.");
+        ResponseEntity<ApiResponseDto<Object>> errorResponse = ApiResponseUtil.error(
+                "잘못된 인증 정보입니다"
+                ,401,
+                "UNAUTHORIZED"
+                ,null);
+
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(new ObjectMapper().writeValueAsString(errorDTO));
+        response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
     }
 }
