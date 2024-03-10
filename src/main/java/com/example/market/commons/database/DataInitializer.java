@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 
-// customer로 표현되었지만 admin 권한을 가진 관리자임
+// customer로 표현되었지만 admin 권한을 가진 관리자임 admin 권한을 가진 유저를 처음 서버 가동 시에 없다면/ 생성해주는 로직
 @Component
 public class DataInitializer implements CommandLineRunner {
 
