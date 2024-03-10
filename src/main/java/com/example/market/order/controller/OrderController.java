@@ -30,7 +30,7 @@ public class OrderController {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         List<OrderDto> orderDto = orderService.getOrderList(customerId);
 
-        return ApiResponseUtil.successResponse(customerName + " 님의 주문 목록 입니다.", orderDto);
+        return ApiResponseUtil.success(customerName + " 님의 주문 목록 입니다.", orderDto,200);
 
     }
 
@@ -42,7 +42,7 @@ public class OrderController {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         OrderItemDto updatedItemDto = orderService.addOrderItem(customerId, orderItemDto);
 
-        return ApiResponseUtil.successResponse(customerName + " 님의 주문에 상품이 추가 되었습니다.", updatedItemDto);
+        return ApiResponseUtil.success(customerName + " 님의 주문에 상품이 추가 되었습니다.", updatedItemDto,200);
 
     }
 
@@ -52,7 +52,7 @@ public class OrderController {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         OrderDto confirmOrder = orderService.confirmOrder(customerId, orderId);
 
-        return ApiResponseUtil.successResponse("주문이 확정되었습니다. 결제를 진행해주세요",confirmOrder);
+        return ApiResponseUtil.success("주문이 확정되었습니다. 결제를 진행해주세요",confirmOrder,200);
     }
 
     // 주문 상태 업데이트
@@ -61,7 +61,7 @@ public class OrderController {
     public ResponseEntity<ApiResponseDto<OrderDto>> updateOrderStatus(@PathVariable Long orderId,
                                                                       @RequestParam OrderStatus newStatus) {
         OrderDto updatedOrder = orderService.updateOrderStatus(orderId, newStatus);
-        return ApiResponseUtil.successResponse("주문 상태가 업데이트 되었습니다", updatedOrder);
+        return ApiResponseUtil.success("주문 상태가 업데이트 되었습니다", updatedOrder,200);
 
     }
 
@@ -71,7 +71,7 @@ public class OrderController {
                                                                                   @RequestBody OrderItemDto orderItemDto) {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         List<OrderDto> updatedOrders = orderService.updateOrderItemQuantity(customerId, orderItemId, orderItemDto);
-        return ApiResponseUtil.successResponse("주문 수량이 변경되었습니다", updatedOrders);
+        return ApiResponseUtil.success("주문 수량이 변경되었습니다", updatedOrders,200);
 
     }
 
@@ -80,7 +80,7 @@ public class OrderController {
     public ResponseEntity<ApiResponseDto<List<OrderDto>>> deleteOrderItem(@PathVariable Long orderItemId, Authentication authentication) {
         Long customerId = customerService.findCustomerIdByAuthentication(authentication);
         List<OrderDto> orderDto = orderService.deleteOrderItem(customerId, orderItemId);
-        return ApiResponseUtil.successResponse("주문할 상품이 삭제 되었습니다.", orderDto);
+        return ApiResponseUtil.success("주문할 상품이 삭제 되었습니다.", orderDto,200);
 
     }
 
