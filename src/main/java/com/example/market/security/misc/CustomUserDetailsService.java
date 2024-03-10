@@ -1,4 +1,4 @@
-package com.example.market.security.utils;
+package com.example.market.security.misc;
 
 import com.example.market.customer.entity.Customer;
 import com.example.market.customer.repository.CustomerRepository;
@@ -22,14 +22,14 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.customerRepository = customerRepository;
     }
 
-    @Override
+    @Override //LoginProvider 에서 이 메서드를 사용함
     public UserDetails loadUserByUsername(String customerName) throws UsernameNotFoundException {
         return customerRepository.findOneWithAuthoritiesByCustomerName(customerName)
-                .map(customer -> createCustomer(customerName, customer))
+                .map(this::createCustomer)
                 .orElseThrow(() -> new UsernameNotFoundException(customerName + "데이터베이스에서 찾을 수 없습니다."));
     }
 
-    private User createCustomer(String customerName, Customer customer) {
+    private User createCustomer(Customer customer) {
         List<GrantedAuthority> grantedAuthorities = customer.getAuthorities().stream()
                 .map(authority -> new SimpleGrantedAuthority(authority.getAuthorityName()))
                 .collect(Collectors.toList());

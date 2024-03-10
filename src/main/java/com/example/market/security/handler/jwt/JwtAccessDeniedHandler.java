@@ -1,4 +1,4 @@
-package com.example.market.handler.jwt;
+package com.example.market.security.handler.jwt;
 
 import com.example.market.commons.apiResponse.ApiResponseDto;
 import com.example.market.commons.apiResponse.ApiResponseUtil;
