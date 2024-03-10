@@ -1,5 +1,6 @@
 package com.example.market.customer;
 
+import com.example.market.commons.apiResponse.ApiResponseDto;
 import com.example.market.customer.controller.CustomerController;
 import com.example.market.customer.dto.AuthorityDto;
 import com.example.market.customer.dto.CustomerDto;
@@ -34,18 +35,17 @@ class CustomerControllerTest {
     @Test
     @DisplayName("회원 가입 컨트롤러 테스트")
     public void register() throws Exception {
-        //given
-//        CustomerDto testCustomerDto = createTestCustomerDto();
-//        when(customerService.register(any())).thenReturn(testCustomerDto);
-//
-//        //when
-//        ResponseEntity<CustomerDto> responseEntity = customerController.register(testCustomerDto);
-//
-//        //then
-//        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-//        assertEquals(testCustomerDto, responseEntity.getBody());
-//
-//        verify(customerService, times(1)).register(eq(testCustomerDto));
+       // given
+        CustomerDto testCustomerDto = createTestCustomerDto();
+        when(customerService.register(any())).thenReturn(testCustomerDto);
+
+        //when
+        ResponseEntity<ApiResponseDto<CustomerDto>> responseEntity = customerController.register(testCustomerDto);
+
+        //then
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+
+        verify(customerService, times(1)).register(eq(testCustomerDto));
     }
 
 
