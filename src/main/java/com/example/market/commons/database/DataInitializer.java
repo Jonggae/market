@@ -30,6 +30,7 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... arg) {
 
         Authority adminAuthority = authorityRepository.save(new Authority("ROLE_ADMIN"));
+        authorityRepository.save(new Authority("ROLE_USER"));
 
         if (!customerRepository.existsByCustomerName("admin")) {
             Customer admin = Customer.builder()

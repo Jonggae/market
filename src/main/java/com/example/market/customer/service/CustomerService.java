@@ -17,15 +17,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final CartRepository cartRepository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CartRepository cartRepository;
 
     public CustomerDto register(CustomerDto customerDto) {
         checkUserInfo(customerDto.getCustomerName(), customerDto.getEmail(), customerDto.getPhoneNumber());
