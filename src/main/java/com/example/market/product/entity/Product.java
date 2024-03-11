@@ -1,5 +1,6 @@
 package com.example.market.product.entity;
 
+import com.example.market.product.dto.ProductDto;
 import lombok.*;
 
 import javax.persistence.*;
@@ -36,6 +37,13 @@ public class Product {
     //상품 재고
     @Column(name = "stock", nullable = false)
     private Long stock;
+
+    public void updateFromDto(ProductDto productDto) {
+        this.productName = productDto.getProductName();
+        this.productDescription = productDto.getProductDescription();
+        this.price = productDto.getPrice();
+        this.stock = productDto.getStock();
+    }
 
 
     // todo: 상품은 주문, 장바구니와의 연결이 필요. 이후 개발과정에서 추가

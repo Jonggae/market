@@ -1,9 +1,9 @@
 package com.example.market.product.service;
 
+import com.example.market.exception.NotFoundProductException;
 import com.example.market.product.dto.ProductDto;
 import com.example.market.product.entity.Product;
 import com.example.market.product.repository.ProductRepository;
-import com.example.market.exception.NotFoundProductException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +22,7 @@ public class ProductService {
 
     //상품 등록
     public ProductDto addProduct(ProductDto productDto) {
-        Product product = Product.builder()
-                .productName(productDto.getProductName())
-                .productDescription(productDto.getProductDescription())
-                .price(productDto.getPrice())
-                .stock(productDto.getStock())
-                .build();
-
+        Product product = ProductDto.toEntity(productDto);
         return ProductDto.from(productRepository.save(product));
     }
 
@@ -51,12 +45,8 @@ public class ProductService {
     public ProductDto updateProduct(Long productId, ProductDto productDto) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(NotFoundProductException::new);
-        product.setProductName(productDto.getProductName());
-        product.setProductDescription(productDto.getProductDescription());
-        product.setPrice(productDto.getPrice());
-        product.setStock(productDto.getStock());
-        productRepository.save(product);
-        return ProductDto.from(product);
+        product.updateFromDto(productDto);
+        return ProductDto.from(productRepository.save(product));
     }
 
     // 상품 삭제
