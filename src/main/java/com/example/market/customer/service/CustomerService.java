@@ -76,8 +76,7 @@ public class CustomerService {
         }
     }
 
-    public Long findCustomerIdByAuthentication(Authentication authentication) {
-        String customerName = authentication.getName();
+    public Long findCustomerIdByCustomerName(String customerName) {
         Customer customer = customerRepository.findByCustomerName(customerName)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다."));
         return customer.getId();
