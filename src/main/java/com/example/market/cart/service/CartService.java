@@ -6,7 +6,6 @@ import com.example.market.cart.entity.Cart;
 import com.example.market.cart.entity.CartItem;
 import com.example.market.cart.repository.CartItemRepository;
 import com.example.market.cart.repository.CartRepository;
-import com.example.market.customer.repository.CustomerRepository;
 import com.example.market.exception.NotFoundCartException;
 import com.example.market.exception.NotFoundCartItemException;
 import com.example.market.exception.NotFoundProductException;
@@ -27,7 +26,8 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
-    
+
+
     // 내 장바구니 조회 (장바구니 안의 상품을 보여줌)
     public CartDto getCartItems(Long customerId) {
         Cart cart = cartRepository.findByCustomerId(customerId)
