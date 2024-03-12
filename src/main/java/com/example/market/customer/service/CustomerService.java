@@ -17,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +43,6 @@ public class CustomerService {
                 .build();
 
         customer = customerRepository.save(customer);
-
 
         Cart cart = Cart.builder()
                 .customer(customer)
