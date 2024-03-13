@@ -1,6 +1,9 @@
 package com.example.market.security.utils;
 
-import com.example.market.customer.service.CustomerService;
+import com.example.market.customer.entity.Customer;
+import com.example.market.customer.repository.CustomerRepository;
+import com.example.market.exception.NotFoundMemberException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -12,14 +15,16 @@ import java.util.Optional;
 
 // 아래 getCurrentUsername() 메서드를 이용하여 인증된 Authentication 객체 내부의 요소들을 가져옴 (eg. customerName 같은)
 @Component
+@RequiredArgsConstructor
 public class SecurityUtil {
-    private CustomerService customerService;
+
+    private final CustomerRepository customerRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityUtil.class);
 
 
     // 로그인 후 SecurityContextHolder에서 정보를 가져옴
-    public static Optional<String> getCurrentCustomerName() {
+    public Optional<String> getCurrentCustomerName() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
@@ -40,6 +45,8 @@ public class SecurityUtil {
 
     public Long getCurrentCustomerId(Authentication authentication) {
         String customerName = authentication.getName();
-        return customerService.findCustomerIdByCustomerName(customerName);
+        Customer customer = customerRepository.findByCustomerName(customerName)
+                .orElseThrow(NotFoundMemberException::new);
+        return customer.getId();
     }
 }
