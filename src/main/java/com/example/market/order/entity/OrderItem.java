@@ -34,4 +34,7 @@ public class OrderItem {
         return product.getPrice() * quantity;
     }
 
+    public void restockProduct() {
+        this.product.increaseStock(this.quantity);
+    }
 }

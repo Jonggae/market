@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +23,17 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+    /*
+     * 리팩토링 방향
+     * 1. 중복 코드 제거 - getOrderList , updateOrderStatus
+     * 2. 메서드 분리 - confirmOrder, updateOrderItemQuantity
+     * 3. 예외 처리 개선 - 사용자 정의 예외로 사용
+     * 4. 불필요한 코드 제거 -  createPendingOrder
+     * 5. 코드가독성 개선 - 전체
+     * 6. 트랜잭션 관리 개선 - 다른 메서드에서도 @Transaction이 필요할 수도
+     * 7. 도메인 모델 개선 - entity와 Dto가 혼재되어있음.
+     * 8. 의존성 주입 개선 - 생성자 주입 vs 필드 주입 일관성있게 설정 */
+
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -47,21 +57,9 @@ public class OrderService {
 
     // 전체 주문 조회(확정, 미확정 전부)
     public List<OrderDto> getOrderList(Long customerId) {
-        List<Order> orders = orderRepository.findAllByCustomerId(customerId);
-
-        return orders.stream().map(order -> {
-            List<OrderItemDto> orderItems = order.getOrderItems().stream()
-                    .map(OrderItemDto::from)
-                    .collect(Collectors.toList());
-
-            return OrderDto.builder()
-                    .orderId(order.getId())
-                    .customerId(customerId)
-                    .orderItems(orderItems)
-                    .status(order.getOrderStatus()) // 실제 주문의 상태를 반영
-                    .orderDateTime(order.getOrderDate())
-                    .build();
-        }).collect(Collectors.toList());
+        return orderRepository.findAllByCustomerId(customerId).stream()
+                .map(OrderDto::from)
+                .collect(Collectors.toList());
     }
 
     // 미확정 주문에 상품 추가하기 (아직 주문하기를 누르기 전임)
@@ -75,15 +73,13 @@ public class OrderService {
         Product product = productRepository.findById(orderItemDto.getProductId())
                 .orElseThrow(NotFoundProductException::new);
 
-        OrderItem newOrderItem = OrderItem.builder()
-                .order(order)
-                .product(product)
-                .quantity(orderItemDto.getQuantity())
-                .build();
+        // 재고 줄이고 확인
+        boolean stockReduced = product.reduceStock(orderItemDto.getQuantity());
+        if (!stockReduced) {
+            throw new InsufficientStockException(product.getProductName());
+        }
 
-        newOrderItem = orderItemRepository.save(newOrderItem);
-
-        order.getOrderItems().add(newOrderItem);
+        OrderItem newOrderItem = order.addOrderItem(product, orderItemDto.getQuantity());
         orderRepository.save(order);
 
         return OrderItemDto.from(newOrderItem);
@@ -94,22 +90,21 @@ public class OrderService {
     public OrderDto confirmOrder(Long customerId, Long orderId) {
         Order extstingOrder = orderRepository.findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(NotFoundOrderException::new);
-
-        for (OrderItem orderItem : extstingOrder.getOrderItems()) {
-            Product product = orderItem.getProduct();
-            long remainingStock = product.getStock() - orderItem.getQuantity();
-
-            if (remainingStock <=0) {
-                throw new RuntimeException(product.getProductName() + " 상품의 재고가 부족합니다");
-            }
-            product.setStock(remainingStock);
-            productRepository.save(product);
-        }
-
-        extstingOrder.setOrderStatus(OrderStatus.PENDING_PAYMENT); // 주문 확정이므로 상태 변경함
-        extstingOrder.setOrderDate(LocalDateTime.now());
+        validateAndReduceStock(extstingOrder); //재고 확인
+        extstingOrder.confirmOrder(); // 주문 상태 변경
 
         return OrderDto.from(orderRepository.save(extstingOrder));
+    }
+
+    // 재고 확인 로직
+    private void validateAndReduceStock(Order order) {
+        for (OrderItem orderItem : order.getOrderItems()) {
+            Product product = orderItem.getProduct();
+            if (!product.reduceStock(orderItem.getQuantity())) {
+                throw new InsufficientStockException("상품 수량이 충분하지 않습니다.");
+            }
+            productRepository.save(product);
+        }
     }
 
     // 결제, 배송 등 이후 주문 상태 업데이트
@@ -117,15 +112,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(NotFoundOrderException::new);
 
-        if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.PENDING_ORDER) {
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = item.getProduct();
-                product.setStock(product.getStock() + item.getQuantity());
-                productRepository.save(product);
-            }
-        }
-
-        order.setOrderStatus(newStatus);
+        order.updateOrderStatus(newStatus);
         return OrderDto.from(orderRepository.save(order));
     }
 
@@ -135,17 +122,12 @@ public class OrderService {
                 .orElseThrow(NotFoundOrderItemException::new);
 
         Order order = orderItem.getOrder();
-        validateOrderStatus(order);
+        order.validateOrderStatusForUpdate();
 
-        Product product = orderItem.getProduct();
         long quantityDifference = orderItemDto.getQuantity() - orderItem.getQuantity();
-        long updatedStock = product.getStock() - quantityDifference;
-        if (updatedStock < 0) {
-            throw new InsufficientStockException(product.getProductName());
-        }
+        Product product = orderItem.getProduct();
+        product.updateStock(-quantityDifference); //재고 업데이트
 
-        product.setStock(updatedStock);
-        productRepository.save(product);
         orderItem.setQuantity(orderItemDto.getQuantity());
         orderItemRepository.save(orderItem);
         return getOrderList(customerId);
@@ -174,11 +156,4 @@ public class OrderService {
         orderRepository.delete(order);
         return getOrderList(customerId);
     }
-
-    // 주문상태 체크
-     public void validateOrderStatus(Order order) {
-        if (!order.getOrderStatus().equals(OrderStatus.PENDING_ORDER)) {
-            throw new RuntimeException("주문 상태가 대기중이 아니므로 주문 항목의 수량을 변경할 수 없습니다.");
-        }
-     }
 }
