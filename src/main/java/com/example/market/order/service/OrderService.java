@@ -63,6 +63,7 @@ public class OrderService {
     }
 
     // 미확정 주문에 상품 추가하기 (아직 주문하기를 누르기 전임)
+    @Transactional
     public OrderItemDto addOrderItem(Long customerId, OrderItemDto orderItemDto) {
         customerRepository.findById(customerId)
                 .orElseThrow(NotFoundMemberException::new);
@@ -73,7 +74,7 @@ public class OrderService {
         Product product = productRepository.findById(orderItemDto.getProductId())
                 .orElseThrow(NotFoundProductException::new);
 
-        // 재고 줄이고 확인
+        // 재고 줄이고 확인 -> 재고보다 더 많은 수량을 추가하려 했을때
         boolean stockReduced = product.reduceStock(orderItemDto.getQuantity());
         if (!stockReduced) {
             throw new InsufficientStockException(product.getProductName());
@@ -96,12 +97,12 @@ public class OrderService {
         return OrderDto.from(orderRepository.save(extstingOrder));
     }
 
-    // 재고 확인 로직
+    // 재고 확인 로직, 주문에 포함된 모든 상품들을 파악함. addOrderItem의 stockReduced와 좀 다름
     private void validateAndReduceStock(Order order) {
         for (OrderItem orderItem : order.getOrderItems()) {
             Product product = orderItem.getProduct();
             if (!product.reduceStock(orderItem.getQuantity())) {
-                throw new InsufficientStockException("상품 수량이 충분하지 않습니다.");
+                throw new InsufficientStockException(product.getProductName());
             }
             productRepository.save(product);
         }
@@ -146,7 +147,7 @@ public class OrderService {
         return getOrderList(customerId);
     }
 
-    // 주문 삭제하기
+    // 주문 삭제하기 -> 주문 객체 자체를 삭제함
     @Transactional
     public List<OrderDto> deleteOrder(Long orderId, Long customerId) {
         Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
