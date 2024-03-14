@@ -1,7 +1,7 @@
 package com.example.market.order.entity;
 
 import com.example.market.customer.entity.Customer;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.example.market.product.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +24,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_date",nullable = false)
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate; // 주문 시간
 
     @Column(name = "status")
@@ -38,17 +38,44 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public void addOrderItem(OrderItem orderItem) {
-        orderItems.add(orderItem);
-        orderItem.setOrder(this);
-
-    }
     public void setOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
 
     public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
+    }
+
+    // 주문 목록에 상품 추가
+    public OrderItem addOrderItem(Product product, int quantity) {
+        product.reduceStock(quantity);
+        OrderItem newOrderItem = OrderItem.builder()
+                .order(this)
+                .product(product)
+                .quantity(quantity)
+                .build();
+        this.orderItems.add(newOrderItem);
+        return newOrderItem;
+    }
+
+    // 주문 확정용으로만 사용
+    public void confirmOrder() {
+        this.orderStatus = OrderStatus.PENDING_PAYMENT;
+        this.orderDate = LocalDateTime.now();
+    }
+
+    // 주문의 상태 변경(업데이트)
+    public void updateOrderStatus(OrderStatus newStatus) {
+        if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.PENDING_ORDER) {
+            this.orderItems.forEach(OrderItem::restockProduct);
+        }
+        this.orderStatus = newStatus;
+    }
+
+    public void validateOrderStatusForUpdate() {
+        if (this.orderStatus != OrderStatus.PENDING_ORDER) {
+            throw new RuntimeException("주문 상태가 대기중이 아니므로 주문 항목을 변경할 수 없습니다.");
+        }
     }
 
     public enum OrderStatus {

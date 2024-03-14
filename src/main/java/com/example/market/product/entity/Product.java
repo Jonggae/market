@@ -1,5 +1,7 @@
 package com.example.market.product.entity;
 
+import com.example.market.exception.InsufficientStockException;
+import com.example.market.product.dto.ProductDto;
 import lombok.*;
 
 import javax.persistence.*;
@@ -37,6 +39,33 @@ public class Product {
     @Column(name = "stock", nullable = false)
     private Long stock;
 
+    public void updateFromDto(ProductDto productDto) {
+        this.productName = productDto.getProductName();
+        this.productDescription = productDto.getProductDescription();
+        this.price = productDto.getPrice();
+        this.stock = productDto.getStock();
+    }
 
-    // todo: 상품은 주문, 장바구니와의 연결이 필요. 이후 개발과정에서 추가
+    public boolean reduceStock(int quantity) {
+        long newStock = this.stock - quantity;
+        if (newStock<0) {
+            return false;
+        }
+        this.stock = newStock;
+        return true;
+    }
+
+    public void increaseStock(int quantity) {
+        this.stock+=quantity;
+    }
+
+    public void updateStock(long quantityDifference) {
+        long updatedStock = this.stock - quantityDifference;
+        if (updatedStock <0 ) {
+            throw new InsufficientStockException(this.productName);
+        }
+        this.stock = updatedStock;
+    }
+
+
 }

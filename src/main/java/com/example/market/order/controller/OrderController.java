@@ -1,12 +1,14 @@
 package com.example.market.order.controller;
 
+import com.example.market.commons.MessageUtil;
 import com.example.market.commons.apiResponse.ApiResponseDto;
 import com.example.market.commons.apiResponse.ApiResponseUtil;
-import com.example.market.customer.service.CustomerService;
 import com.example.market.order.dto.OrderDto;
 import com.example.market.order.dto.OrderItemDto;
 import com.example.market.order.entity.Order.OrderStatus;
+import com.example.market.order.message.OrderApiMessage;
 import com.example.market.order.service.OrderService;
+import com.example.market.security.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,38 +23,37 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
-    private final CustomerService customerService;
+    private final SecurityUtil securityUtil;
 
     // 내 주문 조회
     @GetMapping("/my-order")
     public ResponseEntity<ApiResponseDto<List<OrderDto>>> getOrderList(Authentication authentication) {
         String customerName = authentication.getName();
-        Long customerId = customerService.findCustomerIdByAuthentication(authentication);
+        Long customerId = securityUtil.getCurrentCustomerId(authentication);
         List<OrderDto> orderDto = orderService.getOrderList(customerId);
-
-        return ApiResponseUtil.successResponse(customerName + " 님의 주문 목록 입니다.", orderDto);
-
+        String message = MessageUtil.getFormattedMessage(OrderApiMessage.ORDER_LIST_SUCCESS, customerName);
+        return ApiResponseUtil.success(message, orderDto, 200);
     }
 
     // 주문 항목 추가
     @PostMapping("/my-order/items")
     public ResponseEntity<ApiResponseDto<OrderItemDto>> addOrderItem(Authentication authentication,
                                                                      @RequestBody OrderItemDto orderItemDto) {
-        String customerName = authentication.getName();
-        Long customerId = customerService.findCustomerIdByAuthentication(authentication);
+        Long customerId = securityUtil.getCurrentCustomerId(authentication);
         OrderItemDto updatedItemDto = orderService.addOrderItem(customerId, orderItemDto);
-
-        return ApiResponseUtil.successResponse(customerName + " 님의 주문에 상품이 추가 되었습니다.", updatedItemDto);
+        String message = MessageUtil.getMessage(OrderApiMessage.ORDER_ADD_SUCCESS);
+        return ApiResponseUtil.success(message, updatedItemDto, 200);
 
     }
 
     // 주문 확정
     @PostMapping("/my-order/{orderId}/confirm") // 해당 유저의 주문번호를 지정하여 확정
     public ResponseEntity<ApiResponseDto<OrderDto>> confirmOrder(Authentication authentication, @PathVariable Long orderId) {
-        Long customerId = customerService.findCustomerIdByAuthentication(authentication);
+        Long customerId = securityUtil.getCurrentCustomerId(authentication);
         OrderDto confirmOrder = orderService.confirmOrder(customerId, orderId);
+        String message = MessageUtil.getMessage(OrderApiMessage.ORDER_STATUS_UPDATE_SUCCESS);
 
-        return ApiResponseUtil.successResponse("주문이 확정되었습니다. 결제를 진행해주세요",confirmOrder);
+        return ApiResponseUtil.success(message, confirmOrder, 200);
     }
 
     // 주문 상태 업데이트
@@ -61,7 +62,8 @@ public class OrderController {
     public ResponseEntity<ApiResponseDto<OrderDto>> updateOrderStatus(@PathVariable Long orderId,
                                                                       @RequestParam OrderStatus newStatus) {
         OrderDto updatedOrder = orderService.updateOrderStatus(orderId, newStatus);
-        return ApiResponseUtil.successResponse("주문 상태가 업데이트 되었습니다", updatedOrder);
+        String message = MessageUtil.getMessage(OrderApiMessage.ORDER_STATUS_UPDATE_SUCCESS);
+        return ApiResponseUtil.success(message, updatedOrder, 200);
 
     }
 
@@ -69,18 +71,20 @@ public class OrderController {
     @PutMapping("/my-order/items/{orderItemId}")
     public ResponseEntity<ApiResponseDto<List<OrderDto>>> updateOrderItemQuantity(Authentication authentication, @PathVariable Long orderItemId,
                                                                                   @RequestBody OrderItemDto orderItemDto) {
-        Long customerId = customerService.findCustomerIdByAuthentication(authentication);
+        Long customerId = securityUtil.getCurrentCustomerId(authentication);
         List<OrderDto> updatedOrders = orderService.updateOrderItemQuantity(customerId, orderItemId, orderItemDto);
-        return ApiResponseUtil.successResponse("주문 수량이 변경되었습니다", updatedOrders);
+        String message = MessageUtil.getMessage(OrderApiMessage.ORDER_UPDATE_SUCCESS);
+        return ApiResponseUtil.success(message, updatedOrders, 200);
 
     }
 
     // 주문 항목 삭제
     @DeleteMapping("/my-order/items/{orderItemId}")
     public ResponseEntity<ApiResponseDto<List<OrderDto>>> deleteOrderItem(@PathVariable Long orderItemId, Authentication authentication) {
-        Long customerId = customerService.findCustomerIdByAuthentication(authentication);
+        Long customerId = securityUtil.getCurrentCustomerId(authentication);
         List<OrderDto> orderDto = orderService.deleteOrderItem(customerId, orderItemId);
-        return ApiResponseUtil.successResponse("주문할 상품이 삭제 되었습니다.", orderDto);
+        String message = MessageUtil.getMessage(OrderApiMessage.ORDER_DELETE_SUCCESS);
+        return ApiResponseUtil.success(message, orderDto, 200);
 
     }
 

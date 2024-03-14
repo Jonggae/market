@@ -19,8 +19,8 @@ public class GlobalExceptionHandler {
         return ApiResponseUtil.error(
                 errorMessage,
                 404,
-                "NOT_FOUND_MEMBER"
-                , null
+                "NOT_FOUND_MEMBER",
+                null
         );
     }
 
@@ -32,7 +32,8 @@ public class GlobalExceptionHandler {
                 errorMessage,
                 400,
                 "DATA_INTEGRITY_VIOLATION",
-                null);
+                null
+        );
     }
 
     // Product - 찾으려는 상품이 없을 때 (404)
@@ -43,7 +44,8 @@ public class GlobalExceptionHandler {
                 errorMessage,
                 404,
                 "NOT_FOUND_PRODUCT",
-                null);
+                null
+        );
     }
 
     // Cart - 장바구니가 없을때 (잘 안일어날듯)
@@ -54,7 +56,8 @@ public class GlobalExceptionHandler {
                 errorMessage,
                 404,
                 "NOT_FOUND_CART",
-                null);
+                null
+        );
     }
 
     // Cart - 장바구니 내의 상품을 찾을 수 없을 때 404
@@ -65,7 +68,8 @@ public class GlobalExceptionHandler {
                 errorMessage,
                 404,
                 "NOT_FOUND_CART_ITEM",
-                null);
+                null
+        );
     }
 
     // Order - 주문 객체가 없을 때 404
@@ -75,8 +79,8 @@ public class GlobalExceptionHandler {
         return ApiResponseUtil.error(
                 errorMessage,
                 404,
-                "NOT_FOUND_ORDER"
-                , null
+                "NOT_FOUND_ORDER",
+                null
         );
     }
 

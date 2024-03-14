@@ -1,4 +1,4 @@
-package com.example.market.security.jwt;
+package com.example.market.security.misc;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;

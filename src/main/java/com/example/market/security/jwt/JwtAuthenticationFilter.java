@@ -1,7 +1,8 @@
 package com.example.market.security.jwt;
 
-import com.example.market.handler.login.LoginFailureHandler;
-import com.example.market.handler.login.LoginSuccessHandler;
+import com.example.market.security.handler.login.LoginFailureHandler;
+import com.example.market.security.handler.login.LoginSuccessHandler;
+import com.example.market.security.misc.LoginProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

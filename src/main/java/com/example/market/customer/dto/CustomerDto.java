@@ -1,5 +1,6 @@
 package com.example.market.customer.dto;
 
+import com.example.market.customer.entity.Authority;
 import com.example.market.customer.entity.Customer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -37,6 +38,19 @@ public class CustomerDto {
                         .map(authority -> AuthorityDto.builder().authorityName(authority.getAuthorityName()).build())
                         .collect(Collectors.toSet()))
 
+                .build();
+    }
+
+    public static Customer toEntity(CustomerDto customerDto) {
+        if (customerDto == null) return null;
+
+        return Customer.builder()
+                .customerName(customerDto.getCustomerName())
+                .phoneNumber(customerDto.getPhoneNumber())
+                .email(customerDto.getEmail())
+                .authorities(customerDto.getAuthorityDtoSet().stream()
+                        .map(authorityDto -> Authority.builder().authorityName(authorityDto.getAuthorityName()).build())
+                        .collect(Collectors.toSet()))
                 .build();
     }
 }

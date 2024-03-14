@@ -1,12 +1,12 @@
 package com.example.market.security.config;
 
-import com.example.market.handler.jwt.JwtAccessDeniedHandler;
-import com.example.market.handler.jwt.JwtAuthenticationEntryPoint;
-import com.example.market.handler.login.LoginFailureHandler;
-import com.example.market.handler.login.LoginSuccessHandler;
+import com.example.market.security.handler.jwt.JwtAccessDeniedHandler;
+import com.example.market.security.handler.jwt.JwtAuthenticationEntryPoint;
+import com.example.market.security.handler.login.LoginFailureHandler;
+import com.example.market.security.handler.login.LoginSuccessHandler;
 import com.example.market.security.jwt.JwtAuthenticationFilter;
-import com.example.market.security.jwt.LoginProvider;
 import com.example.market.security.jwt.TokenProvider;
+import com.example.market.security.misc.LoginProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -61,7 +61,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable); //csrf 비활성화는 나중에 신경써야할듯?
+        http.csrf(AbstractHttpConfigurer::disable);
 
         // 예외처리 필터 등록
         http.exceptionHandling(exceptionHandling ->
@@ -76,6 +76,7 @@ public class SecurityConfig {
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 .antMatchers("/api/customer/register", "/api/customer/login").permitAll()
                 .antMatchers("/api/products/**").permitAll()
+                .antMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()));
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); //JWT 인증을 위한 필터

@@ -30,9 +30,9 @@ public class OrderDto {
         return OrderDto.builder()
                 .orderId(order.getId())
                 .customerId(order.getCustomer().getId())
-                .orderDateTime(order.getOrderDate())
                 .orderItems(orderItemsDto)
                 .status(order.getOrderStatus())
+                .orderDateTime(order.getOrderDate())
                 .build();
     }
 

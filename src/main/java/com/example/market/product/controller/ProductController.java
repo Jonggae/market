@@ -1,7 +1,9 @@
 package com.example.market.product.controller;
 
+import com.example.market.commons.MessageUtil;
 import com.example.market.commons.apiResponse.ApiResponseDto;
 import com.example.market.commons.apiResponse.ApiResponseUtil;
+import com.example.market.product.message.ProductApiMessage;
 import com.example.market.product.dto.ProductDto;
 import com.example.market.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.MessageFormat;
 import java.util.List;
 
 @RestController
@@ -22,22 +25,25 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponseDto<ProductDto>> addProduct(@RequestBody ProductDto productDto) {
-        ProductDto updatedProductDto = productService.addProduct(productDto);
-        return ApiResponseUtil.success(productDto.getProductName() + " : 해당 상품 등록이 완료되었습니다.", updatedProductDto, 200);
+        ProductDto addedProduct = productService.addProduct(productDto);
+        String message = MessageUtil.getFormattedMessage(ProductApiMessage.PRODUCT_ADD_SUCCESS, productDto.getProductName());
+        return ApiResponseUtil.success(message, addedProduct, 200);
     }
 
     // 전체 상품목록 조회
     @GetMapping
-    public ResponseEntity<ApiResponseDto<List<ProductDto>>> getAllProducts() {
+    public ResponseEntity<ApiResponseDto<List<ProductDto>>> getProductList() {
         List<ProductDto> products = productService.showAllProducts();
-        return ApiResponseUtil.success("전체 상품 리스트입니다.", products, 200);
+        String message =MessageUtil.getMessage(ProductApiMessage.PRODUCT_LIST_SUCCESS);
+        return ApiResponseUtil.success(message, products, 200);
     }
 
     // 상품 단일 조회
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDto<ProductDto>> getProduct(@PathVariable Long id) {
         ProductDto product = productService.showProductInfo(id);
-        return ApiResponseUtil.success(product.getProductName() + "의 상품 정보입니다", product, 200);
+        String message = MessageUtil.getFormattedMessage(ProductApiMessage.PRODUCT_DETAIL_SUCCESS, product.getProductName());
+        return ApiResponseUtil.success(message, product, 200);
     }
 
     // 상품 업데이트
@@ -45,14 +51,16 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDto<ProductDto>> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
         ProductDto updatedProduct = productService.updateProduct(id, productDto);
-        return ApiResponseUtil.success("상품 정보가 수정 되었습니다.", updatedProduct, 200);
+        String message = MessageUtil.getMessage(ProductApiMessage.PRODUCT_UPDATE_SUCCESS);
+        return ApiResponseUtil.success(message, updatedProduct, 200);
     }
 
     // 상품 삭제
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponseDto<List<ProductDto>>> deleteProduct(@PathVariable Long id) {
-        List<ProductDto> updatedProducts = productService.deleteProduct(id);
-        return ApiResponseUtil.success("상품이 삭제 되었습니다.", updatedProducts, 200);
+        List<ProductDto> afterDeletionProducts = productService.deleteProduct(id);
+        String message = MessageUtil.getMessage(ProductApiMessage.PRODUCT_DELETE_SUCCESS);
+        return ApiResponseUtil.success(message, afterDeletionProducts, 200);
     }
 }

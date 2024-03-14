@@ -23,9 +23,10 @@ import java.util.Collections;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final CartRepository cartRepository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CartRepository cartRepository;
+    private final SecurityUtil securityUtil;
 
     public CustomerDto register(CustomerDto customerDto) {
         checkUserInfo(customerDto.getCustomerName(), customerDto.getEmail(), customerDto.getPhoneNumber());
@@ -44,7 +45,6 @@ public class CustomerService {
 
         customer = customerRepository.save(customer);
 
-
         Cart cart = Cart.builder()
                 .customer(customer)
                 .build();
@@ -56,7 +56,7 @@ public class CustomerService {
     //유저 정보 표시하기
     public CustomerDto getCustomerInfo() {
         return CustomerDto.from(
-                SecurityUtil.getCurrentCustomerName()
+                securityUtil.getCurrentCustomerName()
                         .flatMap(customerRepository::findOneWithAuthoritiesByCustomerName)
                         .orElseThrow(() -> new NotFoundMemberException("회원을 찾을 수 없습니다"))
         );
@@ -75,12 +75,5 @@ public class CustomerService {
         if (customerRepository.findByPhoneNumber(phoneNumber).isPresent()) {
             throw new DuplicateMemberException("이미 사용중인 전화번호입니다");
         }
-    }
-
-    public Long findCustomerIdByAuthentication(Authentication authentication) {
-        String customerName = authentication.getName();
-        Customer customer = customerRepository.findByCustomerName(customerName)
-                .orElseThrow(() -> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다."));
-        return customer.getId();
     }
 }

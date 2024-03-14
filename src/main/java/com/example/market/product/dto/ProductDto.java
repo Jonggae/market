@@ -27,4 +27,14 @@ public class ProductDto {
                 .stock(product.getStock())
                 .build();
     }
+
+    public static Product toEntity(ProductDto productDto) {
+        return Product.builder()
+                .id(productDto.getId())
+                .productName(productDto.getProductName())
+                .productDescription(productDto.getProductDescription())
+                .price(productDto.getPrice())
+                .stock(productDto.getStock())
+                .build();
+    }
 }
