@@ -46,22 +46,22 @@ public class Product {
         this.stock = productDto.getStock();
     }
 
-    public boolean reduceStock(int quantity) {
-        long newStock = this.stock - quantity;
-        if (newStock<0) {
-            return false;
-        }
-        this.stock = newStock;
-        return true;
+    // 재고 하락 -> 재고가 충분할때만
+    public void decreaseStock(int quantity) {
+        this.stock -= quantity;
+    }
+
+    public boolean checkStock(int quantity) {
+        return this.stock >= quantity;
     }
 
     public void increaseStock(int quantity) {
-        this.stock+=quantity;
+        this.stock += quantity;
     }
 
     public void updateStock(long quantityDifference) {
         long updatedStock = this.stock - quantityDifference;
-        if (updatedStock <0 ) {
+        if (updatedStock < 0) {
             throw new InsufficientStockException(this.productName);
         }
         this.stock = updatedStock;
