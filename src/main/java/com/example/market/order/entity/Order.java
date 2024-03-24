@@ -38,26 +38,6 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public void setOrderStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
-    }
-
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    // 주문 목록에 상품 추가
-    public OrderItem addOrderItem(Product product, int quantity) {
-        product.reduceStock(quantity);
-        OrderItem newOrderItem = OrderItem.builder()
-                .order(this)
-                .product(product)
-                .quantity(quantity)
-                .build();
-        this.orderItems.add(newOrderItem);
-        return newOrderItem;
-    }
-
     // 주문 확정용으로만 사용
     public void confirmOrder() {
         this.orderStatus = OrderStatus.PENDING_PAYMENT;

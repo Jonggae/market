@@ -23,17 +23,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    /*
-     * 리팩토링 방향
-     * 1. 중복 코드 제거 - getOrderList , updateOrderStatus
-     * 2. 메서드 분리 - confirmOrder, updateOrderItemQuantity
-     * 3. 예외 처리 개선 - 사용자 정의 예외로 사용
-     * 4. 불필요한 코드 제거 -  createPendingOrder
-     * 5. 코드가독성 개선 - 전체
-     * 6. 트랜잭션 관리 개선 - 다른 메서드에서도 @Transaction이 필요할 수도
-     * 7. 도메인 모델 개선 - entity와 Dto가 혼재되어있음.
-     * 8. 의존성 주입 개선 - 생성자 주입 vs 필드 주입 일관성있게 설정 */
-
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -41,7 +30,6 @@ public class OrderService {
     private final CustomerRepository customerRepository;
 
     // 확정 주문은 미확정 주문들의 목록에서 [주문하기] 버튼을 눌러 확정된 상태이며, 결제 유무는 고려하지 않았음.(결제 이전으로 설정)
-
     // 미확정 주문 생성
     public Order createPendingOrder(Long customerId) {
         Customer customer = customerRepository.findById(customerId)
@@ -63,7 +51,6 @@ public class OrderService {
     }
 
     // 미확정 주문에 상품 추가하기 (아직 주문하기를 누르기 전임)
-    @Transactional
     public OrderItemDto addOrderItem(Long customerId, OrderItemDto orderItemDto) {
         customerRepository.findById(customerId)
                 .orElseThrow(NotFoundMemberException::new);
@@ -74,36 +61,43 @@ public class OrderService {
         Product product = productRepository.findById(orderItemDto.getProductId())
                 .orElseThrow(NotFoundProductException::new);
 
-        // 재고 줄이고 확인 -> 재고보다 더 많은 수량을 추가하려 했을때
-        boolean stockReduced = product.reduceStock(orderItemDto.getQuantity());
-        if (!stockReduced) {
-            throw new InsufficientStockException(product.getProductName());
+        // 재고 확인 -> 재고보다 더 많은 수량을 추가하려 했을때 예외 + 실제로 재고를 감소시키지 않음
+        if (!product.checkStock(orderItemDto.getQuantity())) {
+            throw new InsufficientStockException(orderItemDto.getProductName());
         }
 
-        OrderItem newOrderItem = order.addOrderItem(product, orderItemDto.getQuantity());
+        OrderItem newOrderItem = OrderItem.builder()
+                .order(order)
+                .product(product)
+                .quantity(orderItemDto.getQuantity())
+                .build();
+
+        newOrderItem = orderItemRepository.save(newOrderItem);
+        order.getOrderItems().add(newOrderItem);
         orderRepository.save(order);
 
         return OrderItemDto.from(newOrderItem);
     }
 
-    // 주문을 확정함
+    // 주문을 확정함 - 재고가 실제로 감소되는 시점
     @Transactional
     public OrderDto confirmOrder(Long customerId, Long orderId) {
         Order extstingOrder = orderRepository.findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(NotFoundOrderException::new);
-        validateAndReduceStock(extstingOrder); //재고 확인
+        validateAndReduceStock(extstingOrder); //재고 확인, 재고 감소
         extstingOrder.confirmOrder(); // 주문 상태 변경
 
         return OrderDto.from(orderRepository.save(extstingOrder));
     }
 
-    // 재고 확인 로직, 주문에 포함된 모든 상품들을 파악함. addOrderItem의 stockReduced와 좀 다름
+    // 재고 확인, 상품이 여러개일 수 있음.
     private void validateAndReduceStock(Order order) {
         for (OrderItem orderItem : order.getOrderItems()) {
             Product product = orderItem.getProduct();
-            if (!product.reduceStock(orderItem.getQuantity())) {
+            if (!product.checkStock(orderItem.getQuantity())) {
                 throw new InsufficientStockException(product.getProductName());
             }
+            product.decreaseStock(orderItem.getQuantity());
             productRepository.save(product);
         }
     }
