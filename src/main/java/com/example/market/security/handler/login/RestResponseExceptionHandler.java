@@ -35,6 +35,6 @@ public class RestResponseExceptionHandler extends ResponseEntityExceptionHandler
     @ResponseBody
     protected ResponseEntity<ApiResponseDto<Object>> forbidden(RuntimeException ex, WebRequest request) {
         String additionalMsg = "접근 권한이 없습니다. 계정을 확인해주세요.";
-        return ApiResponseUtil.error(additionalMsg, 400, "AUTH ERROR", null);
+        return ApiResponseUtil.error(additionalMsg, 403, "AUTH ERROR", null);
     }
 }
