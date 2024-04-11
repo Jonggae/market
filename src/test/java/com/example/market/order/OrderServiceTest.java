@@ -201,12 +201,6 @@ public class OrderServiceTest {
                 .build();
     }
 
-    private OrderItemDto addNewOrderItem2() {
-        return OrderItemDto.builder()
-                .productId(testProduct1Id)
-                .quantity(1)
-                .build();
-    }
 
 }
 
