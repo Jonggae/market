@@ -1,3 +1,6 @@
+front:
+  server:
+    url: http://localhost:8081
 spring:
   jackson:
     serialization:
@@ -20,7 +23,7 @@ spring:
 jwt:
   header: Authorization
   secret:
-    key: ${JWT_Secret_Key}
+    key: ${JWT_SECRET_KEY}
   expiration_time: 86400
 logging:
   level:
