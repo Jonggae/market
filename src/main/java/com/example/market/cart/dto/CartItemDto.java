@@ -19,6 +19,7 @@ public class CartItemDto {
     private String productName;
     private Integer quantity;
     private Long price;
+    private Long totalPrice;
 
     public static CartItemDto from(CartItem cartItem) {
         return CartItemDto.builder()
@@ -26,7 +27,8 @@ public class CartItemDto {
                 .productId(cartItem.getProduct().getId())
                 .productName(cartItem.getProduct().getProductName())
                 .quantity(cartItem.getQuantity())
-                .price(cartItem.getTotalPrice())
+                .price(cartItem.getProduct().getPrice())
+                .totalPrice(cartItem.getTotalPrice())
                 .build();
     }
 
@@ -36,7 +38,7 @@ public class CartItemDto {
                 "itemId=" + itemId +
                 ", productName='" + productName + '\'' +
                 ", quantity=" + quantity +
-                ", price=" + price +
+                ", price=" + totalPrice +
                 '}';
     }
 

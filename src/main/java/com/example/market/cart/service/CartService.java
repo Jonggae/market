@@ -36,8 +36,11 @@ public class CartService {
         List<CartItemDto> cartItems = cart.getItems().stream()
                 .map(CartItemDto::from)
                 .collect(Collectors.toList());
+        Long totalPrice = cart.getItems().stream()
+                .mapToLong(item -> item.getProduct().getPrice() * item.getQuantity())
+                .sum();
 
-        return new CartDto(customerId, cartItems);
+        return new CartDto(customerId, cartItems,totalPrice);
     }
 
     // 장바구니 항목 추가

@@ -30,7 +30,6 @@ public class ProductDto {
 
     public static Product toEntity(ProductDto productDto) {
         return Product.builder()
-                .id(productDto.getId())
                 .productName(productDto.getProductName())
                 .productDescription(productDto.getProductDescription())
                 .price(productDto.getPrice())
