@@ -18,6 +18,7 @@ public class OrderDto {
 
     private Long orderId;
     private Long customerId;
+    private String customerName;
     private LocalDateTime orderDateTime; // 주문 시각
     private List<OrderItemDto> orderItems;
     private Order.OrderStatus status;
@@ -30,6 +31,7 @@ public class OrderDto {
         return OrderDto.builder()
                 .orderId(order.getId())
                 .customerId(order.getCustomer().getId())
+                .customerName(order.getCustomer().getCustomerName())
                 .orderItems(orderItemsDto)
                 .status(order.getOrderStatus())
                 .orderDateTime(order.getOrderDate())

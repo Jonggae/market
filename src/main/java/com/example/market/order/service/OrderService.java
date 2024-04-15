@@ -151,4 +151,10 @@ public class OrderService {
         orderRepository.delete(order);
         return getOrderList(customerId);
     }
+
+    public List<OrderDto> findAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream().map(OrderDto::from)
+                .collect(Collectors.toList());
+    }
 }

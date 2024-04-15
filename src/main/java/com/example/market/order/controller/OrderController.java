@@ -25,6 +25,12 @@ public class OrderController {
     private final OrderService orderService;
     private final SecurityUtil securityUtil;
 
+    @GetMapping("/admin/orders")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponseDto<List<OrderDto>>> getAllOrders() {
+        List<OrderDto> orders = orderService.findAllOrders();
+        return ApiResponseUtil.success("success",orders, 200);
+    }
     // 내 주문 조회
     @GetMapping("/my-order")
     public ResponseEntity<ApiResponseDto<List<OrderDto>>> getOrderList(Authentication authentication) {
@@ -89,8 +95,8 @@ public class OrderController {
     }
 
     // 주문 삭제 ?? 이건 일단 놔돔. 로직을 다시 짜봐야 할듯. 필요한 로직인가?
+    // 주문 취소의 역할을 할 수 있을듯
     @DeleteMapping("/{customerId}/{orderId}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<OrderDto>> deleteOrder(@PathVariable Long orderId, @PathVariable Long customerId) {
         List<OrderDto> orderDto = orderService.deleteOrder(orderId, customerId);
         return ResponseEntity.ok(orderDto);
