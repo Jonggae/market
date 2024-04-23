@@ -5,7 +5,7 @@ import com.example.market.commons.apiResponse.ApiResponseDto;
 import com.example.market.commons.apiResponse.ApiResponseUtil;
 import com.example.market.order.dto.OrderDto;
 import com.example.market.order.dto.OrderItemDto;
-import com.example.market.order.entity.Order.OrderStatus;
+import com.example.market.order.dto.OrderStatusUpdateDto;
 import com.example.market.order.message.OrderApiMessage;
 import com.example.market.order.service.OrderService;
 import com.example.market.security.utils.SecurityUtil;
@@ -29,8 +29,9 @@ public class OrderController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDto<List<OrderDto>>> getAllOrders() {
         List<OrderDto> orders = orderService.findAllOrders();
-        return ApiResponseUtil.success("success",orders, 200);
+        return ApiResponseUtil.success("success", orders, 200);
     }
+
     // 내 주문 조회
     @GetMapping("/my-order")
     public ResponseEntity<ApiResponseDto<List<OrderDto>>> getOrderList(Authentication authentication) {
@@ -66,11 +67,10 @@ public class OrderController {
     @PatchMapping("/{orderId}/status")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDto<OrderDto>> updateOrderStatus(@PathVariable Long orderId,
-                                                                      @RequestParam OrderStatus newStatus) {
-        OrderDto updatedOrder = orderService.updateOrderStatus(orderId, newStatus);
+                                                                      @RequestBody OrderStatusUpdateDto statusUpdateDto) {
+        OrderDto updatedOrder = orderService.updateOrderStatus(orderId, statusUpdateDto);
         String message = MessageUtil.getMessage(OrderApiMessage.ORDER_STATUS_UPDATE_SUCCESS);
         return ApiResponseUtil.success(message, updatedOrder, 200);
-
     }
 
     // 주문 항목 수량 변경

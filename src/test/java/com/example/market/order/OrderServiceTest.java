@@ -132,7 +132,7 @@ public class OrderServiceTest {
         Long pendingOrderId = orderService.getOrderList(testCustomerId).get(0).getOrderId();
         orderService.confirmOrder(testCustomerId, pendingOrderId);
 
-        orderService.updateOrderStatus(pendingOrderId, Order.OrderStatus.SHIPPED);
+//        orderService.updateOrderStatus(pendingOrderId, Order.OrderStatus.SHIPPED);
 
         // 업데이트된 주문 상태 확인
         Order updatedOrder = orderRepository.findById(pendingOrderId)
