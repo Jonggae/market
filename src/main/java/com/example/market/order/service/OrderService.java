@@ -5,6 +5,7 @@ import com.example.market.customer.repository.CustomerRepository;
 import com.example.market.exception.*;
 import com.example.market.order.dto.OrderDto;
 import com.example.market.order.dto.OrderItemDto;
+import com.example.market.order.dto.OrderStatusUpdateDto;
 import com.example.market.order.entity.Order;
 import com.example.market.order.entity.Order.OrderStatus;
 import com.example.market.order.entity.OrderItem;
@@ -103,10 +104,10 @@ public class OrderService {
     }
 
     // 결제, 배송 등 이후 주문 상태 업데이트
-    public OrderDto updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public OrderDto updateOrderStatus(Long orderId, OrderStatusUpdateDto statusUpdateDto) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(NotFoundOrderException::new);
-
+        OrderStatus newStatus = statusUpdateDto.getStatus();
         order.updateOrderStatus(newStatus);
         return OrderDto.from(orderRepository.save(order));
     }
@@ -150,5 +151,11 @@ public class OrderService {
 
         orderRepository.delete(order);
         return getOrderList(customerId);
+    }
+
+    public List<OrderDto> findAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream().map(OrderDto::from)
+                .collect(Collectors.toList());
     }
 }

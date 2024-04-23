@@ -5,6 +5,8 @@ import com.example.market.security.handler.jwt.JwtAuthenticationEntryPoint;
 import com.example.market.security.handler.login.LoginFailureHandler;
 import com.example.market.security.handler.login.LoginSuccessHandler;
 import com.example.market.security.jwt.JwtAuthenticationFilter;
+import com.example.market.security.jwt.JwtAuthorizationFilter;
+import com.example.market.security.jwt.JwtFilter;
 import com.example.market.security.jwt.TokenProvider;
 import com.example.market.security.misc.LoginProvider;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class SecurityConfig {
     private final LoginProvider loginProvider;
     private final LoginSuccessHandler successHandler;
     private final LoginFailureHandler failureHandler;
+    private final JwtFilter jwtFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -60,7 +63,14 @@ public class SecurityConfig {
     }
 
     @Bean
+    public JwtAuthorizationFilter jwtAuthorizationFilter() {
+        return new JwtAuthorizationFilter(tokenProvider, jwtFilter);
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.cors();
+
         http.csrf(AbstractHttpConfigurer::disable);
 
         // 예외처리 필터 등록
@@ -74,12 +84,14 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests((authorizeHttpRequest -> authorizeHttpRequest
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .antMatchers("/api/customer/register", "/api/customer/login").permitAll()
+                .antMatchers("/api/customer/**").permitAll()
                 .antMatchers("/api/products/**").permitAll()
-                .antMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
+                .antMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()));
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); //JWT 인증을 위한 필터
+        http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class); //JWT 인증을 위한 필터
+
         http.apply(new JwtSecurityConfig(tokenProvider)); // JWT 유효성 검증을 위한 필터
 
         return http.build();

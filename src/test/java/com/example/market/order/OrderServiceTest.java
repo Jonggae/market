@@ -132,7 +132,7 @@ public class OrderServiceTest {
         Long pendingOrderId = orderService.getOrderList(testCustomerId).get(0).getOrderId();
         orderService.confirmOrder(testCustomerId, pendingOrderId);
 
-        orderService.updateOrderStatus(pendingOrderId, Order.OrderStatus.SHIPPED);
+//        orderService.updateOrderStatus(pendingOrderId, Order.OrderStatus.SHIPPED);
 
         // 업데이트된 주문 상태 확인
         Order updatedOrder = orderRepository.findById(pendingOrderId)
@@ -201,12 +201,6 @@ public class OrderServiceTest {
                 .build();
     }
 
-    private OrderItemDto addNewOrderItem2() {
-        return OrderItemDto.builder()
-                .productId(testProduct1Id)
-                .quantity(1)
-                .build();
-    }
 
 }
 

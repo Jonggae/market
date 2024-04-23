@@ -17,14 +17,19 @@ public class CartDto {
 
     private Long customerId;
     private List<CartItemDto> cartItems;
+    private Long totalPrice;
 
     public static CartDto from(Cart cart) {
+        Long totalPrice = cart.getItems().stream()
+                .mapToLong(item -> item.getProduct().getPrice() * item.getQuantity())
+                .sum();
         return CartDto.builder()
                 .customerId(cart.getCustomer().getId())
                 .cartItems(cart.getItems().stream()
                         .map(CartItemDto::from)
                         .collect(Collectors.toList()))
-        .build();
+                .totalPrice(totalPrice)
+                .build();
 
     }
 
