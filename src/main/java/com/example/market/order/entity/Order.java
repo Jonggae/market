@@ -46,9 +46,7 @@ public class Order {
 
     // 주문의 상태 변경(업데이트)
     public void updateOrderStatus(OrderStatus newStatus) {
-        if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.PENDING_ORDER) {
-            this.orderItems.forEach(OrderItem::restockProduct);
-        }
+
         this.orderStatus = newStatus;
     }
 
