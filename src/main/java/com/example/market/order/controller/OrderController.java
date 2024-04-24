@@ -94,9 +94,15 @@ public class OrderController {
 
     }
 
-    // 주문 삭제 ?? 이건 일단 놔돔. 로직을 다시 짜봐야 할듯. 필요한 로직인가?
-    // 주문 취소의 역할을 할 수 있을듯
-    @DeleteMapping("/{customerId}/{orderId}")
+    //주문 취소 (클라이언트)
+    @DeleteMapping("/cancel/{customerId}/{orderId}")
+    public ResponseEntity<List<OrderDto>> cancelOrder(@PathVariable Long orderId, @PathVariable Long customerId) {
+        List<OrderDto> orderDto = orderService.cancelOrderByCustomer(orderId, customerId);
+        return ResponseEntity.ok(orderDto);
+    }
+    // 주문 삭제 (서버 admin)
+    @DeleteMapping("/delete/{customerId}/{orderId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<OrderDto>> deleteOrder(@PathVariable Long orderId, @PathVariable Long customerId) {
         List<OrderDto> orderDto = orderService.deleteOrder(orderId, customerId);
         return ResponseEntity.ok(orderDto);

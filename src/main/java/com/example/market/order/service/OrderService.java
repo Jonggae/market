@@ -85,10 +85,33 @@ public class OrderService {
     public OrderDto confirmOrder(Long customerId, Long orderId) {
         Order extstingOrder = orderRepository.findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(NotFoundOrderException::new);
+        extstingOrder.validateOrderStatusForUpdate(); // 주문 상태 확인
+
         validateAndReduceStock(extstingOrder); //재고 확인, 재고 감소
         extstingOrder.confirmOrder(); // 주문 상태 변경
 
         return OrderDto.from(orderRepository.save(extstingOrder));
+    }
+
+    // 주문 취소 - 재고 회복
+    public List<OrderDto> cancelOrderByCustomer(Long orderId, long customerId) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(NotFoundOrderException::new);
+
+        if (order.getOrderStatus() == Order.OrderStatus.PAID || order.getOrderStatus() == Order.OrderStatus.PENDING_PAYMENT) {
+            order.getOrderItems().forEach(item -> {
+                Product product = item.getProduct();
+                product.setStock(product.getStock() + item.getQuantity());
+                productRepository.save(product);
+            });
+
+            order.updateOrderStatus(Order.OrderStatus.CANCELLED);
+            orderRepository.save(order);
+        } else {
+            throw new IllegalStateException("Only orders that are paid or pending payment can be cancelled.");
+        }
+        return getOrderList(customerId);
     }
 
     // 재고 확인, 상품이 여러개일 수 있음.
@@ -112,17 +135,13 @@ public class OrderService {
         return OrderDto.from(orderRepository.save(order));
     }
 
-    // 미확정 주문 내 상품 수량 변경하기
+    // 미확정 주문 내 상품 수량 변경하기 - 재고 조정 없음
     public List<OrderDto> updateOrderItemQuantity(Long customerId, Long orderItemId, OrderItemDto orderItemDto) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
                 .orElseThrow(NotFoundOrderItemException::new);
 
         Order order = orderItem.getOrder();
         order.validateOrderStatusForUpdate();
-
-        long quantityDifference = orderItemDto.getQuantity() - orderItem.getQuantity();
-        Product product = orderItem.getProduct();
-        product.updateStock(-quantityDifference); //재고 업데이트
 
         orderItem.setQuantity(orderItemDto.getQuantity());
         orderItemRepository.save(orderItem);
@@ -142,14 +161,18 @@ public class OrderService {
         return getOrderList(customerId);
     }
 
-    // 주문 삭제하기 -> 주문 객체 자체를 삭제함
+    // 주문 삭제하기 -> 주문 객체 자체를 삭제함 , 클라이언트가 사용할 것은 아닌듯
     @Transactional
     public List<OrderDto> deleteOrder(Long orderId, Long customerId) {
-        Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
-                .orElseThrow(NotFoundOrderException::new);
-        orderItemRepository.deleteAllByOrder(order);
 
-        orderRepository.delete(order);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(NotFoundOrderException::new);
+        if (order.getOrderStatus() == OrderStatus.CANCELLED) {
+            orderItemRepository.deleteAllByOrder(order);
+            orderRepository.delete(order);
+        } else {
+            throw new IllegalArgumentException("주문 취소 상태의 주문만 삭제 가능합니다.");
+        }
         return getOrderList(customerId);
     }
 
